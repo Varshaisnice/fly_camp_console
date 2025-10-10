@@ -1,4 +1,3 @@
-
 // FlyCamp – base functionality with improved initialisation sequence
 
 /*
@@ -46,13 +45,18 @@ const qsa = (s, r = document) => Array.from(r.querySelectorAll(s));
  *
  * @param {string} id The ID of the page (e.g. 'page1', 'page_choose_game').
  */
-function goToPage(id){
+function goToPage(id) {
+  console.log('goToPage called with id:', id);
   // Hide all screens
-  qsa('.screen').forEach(s => s.classList.remove('active'));
+  qsa('.screen').forEach(s => {
+    s.classList.remove('active');
+    console.log('Hiding screen:', s.id);
+  });
   // Show the requested page
   const pageEl = qs(`#${id}`);
   if (pageEl) {
     pageEl.classList.add('active');
+    console.log('Showing page:', id);
   } else {
     console.error('Page not found:', id);
   }
@@ -74,8 +78,9 @@ function goToPage(id){
     updateInitPageRules();
   }
 }
+
 /** Navigate back to the choose-game page. */
-function backToChoose(){
+function backToChoose() {
   goToPage('page_choose_game');
 }
 
@@ -88,12 +93,12 @@ function backToChoose(){
  * This uses a TreeWalker to find text nodes that contain either of the
  * labels (case-insensitive) and replaces them accordingly.
  */
-function updateControllerLabels(){
+function updateControllerLabels() {
   const root = document.body;
-  const toWord   = (controllerMode === 'joystick') ? WORD_A : WORD_B;
+  const toWord = (controllerMode === 'joystick') ? WORD_A : WORD_B;
   const fromWord = (controllerMode === 'joystick') ? WORD_B : WORD_A;
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-    acceptNode(node){
+    acceptNode(node) {
       const txt = node.nodeValue;
       if (!txt) return NodeFilter.FILTER_SKIP;
       const lower = txt.toLowerCase();
@@ -120,7 +125,7 @@ function updateControllerLabels(){
 }
 
 /** Toggle the controller mode and update labels. */
-function registerControllerToggle(){
+function registerControllerToggle() {
   const btn = qs('#logo-toggle');
   if (!btn) return;
   btn.addEventListener('click', () => {
@@ -139,7 +144,7 @@ function registerControllerToggle(){
  * the confirmation page (page2). Scanning continues until the user
  * confirms their token.
  */
-function beginAutoScan(){
+function beginAutoScan() {
   const loader = qs('#loader1');
   if (loader) loader.textContent = 'Waiting for token...';
   scanInterval = setInterval(() => {
@@ -147,9 +152,9 @@ function beginAutoScan(){
     fetch('/scan_rfid')
       .then(r => r.json())
       .then(d => {
-        if (d.success){
+        if (d.success) {
           username = d.name;
-          rfidTag  = d.token_id;
+          rfidTag = d.token_id;
           if (loader) loader.textContent = `Hi ${username}!`;
           setTimeout(() => {
             qs('#greeting').textContent = `Hi ${username}!`;
@@ -163,7 +168,7 @@ function beginAutoScan(){
 }
 
 /** Stop scanning and go to the choose-game page. */
-function confirmPlayer(){
+function confirmPlayer() {
   scanningActive = false;
   if (scanInterval) clearInterval(scanInterval);
   goToPage('page_choose_game');
@@ -172,6 +177,7 @@ function confirmPlayer(){
 /* ------------------------------------------------------------------ */
 /* Game selection slider                                              */
 /* ------------------------------------------------------------------ */
+
 /**
  * Initialise the horizontal slider of game cards. Only the card in
  * focus plays its video. Cards snap to the centre on swipe. On load
@@ -309,6 +315,7 @@ function initializeCardSlider(selector) {
   // Recenter shortly after page load
   setTimeout(centreOnSecondCard, 50);
 }
+
 /* ------------------------------------------------------------------ */
 /* Confirm & preview overlay                                          */
 /* ------------------------------------------------------------------ */
@@ -326,17 +333,26 @@ function initializeCardSlider(selector) {
  * seconds after the results are displayed; otherwise the user sees an
  * error and can retry.
  */
-function registerPreviewOverlay(){
+function registerPreviewOverlay() {
   const confirmBtn = qs('#confirm-game-btn');
-  const overlay    = qs('#video-overlay');
+  const overlay = qs('#video-overlay');
   const previewVid = qs('#game-video');
-  const closeBtn   = qs('#close-video');
-  const cornerBtn  = qs('#corner-progress');
+  const closeBtn = qs('#close-video');
+  const cornerBtn = qs('#corner-progress');
 
-  if (!confirmBtn || !overlay || !previewVid || !closeBtn || !cornerBtn) return;
+  if (!confirmBtn || !overlay || !previewVid || !closeBtn || !cornerBtn) {
+    console.error('Preview overlay elements missing:', {
+      confirmBtn: !!confirmBtn,
+      overlay: !!overlay,
+      previewVid: !!previewVid,
+      closeBtn: !!closeBtn,
+      cornerBtn: !!cornerBtn
+    });
+    return;
+  }
 
   /** Open the overlay and start playing the preview video. */
-  function openOverlay(){
+  function openOverlay() {
     const src = previewVid.getAttribute('data-src') || '/static/assets/video1.mp4';
     previewVid.src = src;
     overlay.style.display = 'block';
@@ -346,18 +362,18 @@ function registerPreviewOverlay(){
     cornerBtn.style.pointerEvents = 'none';
     cornerBtn.onclick = null;
     previewVid.currentTime = 0;
-    previewVid.play().catch(() => {});
+    previewVid.play().catch(err => console.error('Video play error:', err));
     // Start running connection checks in the background (skipStart=true)
-    if (!window.__initStarted){
+    if (!window.__initStarted) {
       window.__initStarted = true;
-      window.__initReady   = false;
+      window.__initReady = false;
       window.__initSuccess = false;
       runConnectionCheckAndStart(0, true);
     }
   }
 
   /** Close the overlay and pause the preview video. */
-  function closeOverlay(){
+  function closeOverlay() {
     overlay.style.display = 'none';
     previewVid.pause();
   }
@@ -385,41 +401,41 @@ function registerPreviewOverlay(){
    * animate stored results sequentially, then start the game after a 3s delay
    * (if checks succeeded).
    */
-  function proceedAfterPreview(){
+  function proceedAfterPreview() {
     closeOverlay();
     goToPage('page_initializing');
     // Wait until results are ready, then animate them
-    (function waitReady(){
-      if (!window.__initReady){
+    (function waitReady() {
+      if (!window.__initReady) {
         setTimeout(waitReady, 150);
         return;
       }
       showStoredInitResultsSequentially();
     })();
     // Once ready, wait 3s then start game if successful
-    (function maybeStart(){
-      if (!window.__initReady){
+    (function maybeStart() {
+      if (!window.__initReady) {
         setTimeout(maybeStart, 250);
         return;
       }
-      if (!window.__initSuccess){
+      if (!window.__initSuccess) {
         // Show error if checks failed (the animation will handle this)
         return;
       }
       setTimeout(async () => {
         try {
           await fetch('/write_rfid_token', {
-            method:'POST',
-            headers:{ 'Content-Type':'application/json' },
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token_id: rfidTag })
           });
-          const res  = await fetch('/api/start_game', {
-            method:'POST',
-            headers:{ 'Content-Type':'application/json' },
+          const res = await fetch('/api/start_game', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ game_number: selectedGameId || 1, level_number: 1 })
           });
           const data = await res.json();
-          if (!data.success){
+          if (!data.success) {
             qs('#init-status').textContent = data.error || 'Failed to launch the game.';
             qs('#init-error').classList.remove('hidden');
             return;
@@ -443,12 +459,14 @@ function registerPreviewOverlay(){
 /**
  * Update the rules display on the confirm page based on selectedGameId.
  */
-function updateConfirmPageRules(){
+function updateConfirmPageRules() {
   const rulesIds = ['rules-1', 'rules-2', 'rules-3'];
   rulesIds.forEach(id => {
     const ruleSet = qs(`#${id}`);
     if (ruleSet) {
       ruleSet.classList.toggle('hidden', id !== `rules-${selectedGameId}`);
+    } else {
+      console.warn(`Rules element #${id} not found`);
     }
   });
 }
@@ -456,11 +474,18 @@ function updateConfirmPageRules(){
 /**
  * Update the rules display on the initializing page based on selectedGameId.
  */
-function updateInitPageRules(){
+function updateInitPageRules() {
   const rulesContainer = qs('#rules-dynamic');
   const rulesTitle = qs('#rules-title-dynamic');
   const rulesList = qs('#rules-list-dynamic');
-  if (!rulesContainer || !rulesTitle || !rulesList) return;
+  if (!rulesContainer || !rulesTitle || !rulesList) {
+    console.error('Init page rules elements missing:', {
+      rulesContainer: !!rulesContainer,
+      rulesTitle: !!rulesTitle,
+      rulesList: !!rulesList
+    });
+    return;
+  }
 
   // Map selectedGameId to rules div ID
   const rulesMap = {
@@ -470,12 +495,20 @@ function updateInitPageRules(){
   };
   const sourceRulesId = rulesMap[selectedGameId] || 'rules-1';
   const sourceRulesDiv = qs(`#${sourceRulesId}`);
-  if (!sourceRulesDiv) return;
+  if (!sourceRulesDiv) {
+    console.error(`Source rules div #${sourceRulesId} not found`);
+    return;
+  }
 
   // Copy title and list items
-  const sourceTitle = sourceRulesDiv.querySelector('.rules-title').innerHTML;
+  const sourceTitle = sourceRulesDiv.querySelector('.rules-title');
   const sourceListItems = sourceRulesDiv.querySelectorAll('.rules-list li');
-  rulesTitle.innerHTML = sourceTitle;
+  if (!sourceTitle || sourceListItems.length === 0) {
+    console.error('Source rules title or items missing for:', sourceRulesId);
+    return;
+  }
+
+  rulesTitle.innerHTML = sourceTitle.innerHTML;
   rulesList.innerHTML = '';
   sourceListItems.forEach(item => {
     const li = document.createElement('li');
@@ -494,7 +527,7 @@ function updateInitPageRules(){
 /**
  * Clear the list of steps in the initialising page.
  */
-function clearSteps(){
+function clearSteps() {
   const host = qs('#init-steps');
   if (host) host.innerHTML = '';
 }
@@ -506,7 +539,7 @@ function clearSteps(){
  * @param {string} name The label of the step
  * @returns {HTMLElement} The created row
  */
-function addStepRow(name){
+function addStepRow(name) {
   const row = document.createElement('div');
   row.className = 'step hidden';
   row.innerHTML = `<span class="tick-mark">✔</span><span class="step-text">${name}</span>`;
@@ -523,10 +556,10 @@ function addStepRow(name){
  * @param {boolean} ok Whether the step succeeded
  * @param {string} msg Optional additional message
  */
-function markRow(row, ok, msg){
+function markRow(row, ok, msg) {
   row.classList.toggle('ok', ok);
   row.classList.toggle('fail', !ok);
-  if (msg){
+  if (msg) {
     const m = document.createElement('div');
     m.className = 'step-message';
     m.textContent = msg;
@@ -544,7 +577,7 @@ function markRow(row, ok, msg){
  *        used when skipStart=false and checks succeed)
  * @param {boolean} skipStart If true, do not display steps or start the game
  */
-async function runConnectionCheckAndStart(delayStartMs = 0, skipStart = false){
+async function runConnectionCheckAndStart(delayStartMs = 0, skipStart = false) {
   try {
     // Reset UI for new run
     clearSteps();
@@ -552,9 +585,9 @@ async function runConnectionCheckAndStart(delayStartMs = 0, skipStart = false){
     if (errBox) errBox.classList.add('hidden');
     qs('#init-status').textContent = 'Running connection checks...';
     // Call server to perform checks
-    const res  = await fetch('/api/connection_check', {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json' },
+    const res = await fetch('/api/connection_check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ game_number: selectedGameId || 1 })
     });
     const data = await res.json();
@@ -563,12 +596,12 @@ async function runConnectionCheckAndStart(delayStartMs = 0, skipStart = false){
     const order = (selectedGameId === 2) ? base : base.filter(n => n !== 'Car');
     // Prepare results array and optionally animate each step
     const results = [];
-    for (const name of order){
+    for (const name of order) {
       const step = (data.steps || []).find(s => s.name === name);
       if (!step) continue;
       // Determine user-facing name
       let label;
-      if (name === 'Joystick/Gesture'){
+      if (name === 'Joystick/Gesture') {
         label = (controllerMode === 'joystick') ? 'Joystick Controller' : 'Hand Gesture Controller';
       } else {
         label = step.name;
@@ -576,7 +609,7 @@ async function runConnectionCheckAndStart(delayStartMs = 0, skipStart = false){
       // Store result
       results.push({ displayName: label, ok: !!step.ok, message: step.message || '' });
       // If not skipping start, animate step row now
-      if (!skipStart){
+      if (!skipStart) {
         const row = addStepRow(label);
         await new Promise(r => setTimeout(r, 200));
         markRow(row, !!step.ok, step.message || '');
@@ -584,36 +617,36 @@ async function runConnectionCheckAndStart(delayStartMs = 0, skipStart = false){
     }
     // Save results for later sequential animation
     window.__initStoredResults = { results: results, success: !!data.success };
-    window.__initReady   = true;
+    window.__initReady = true;
     window.__initSuccess = !!data.success;
     // If skipping start, we don't display final status or start game now
-    if (skipStart){
+    if (skipStart) {
       return;
     }
     // Update status and error state for immediate display
-    if (!data.success){
+    if (!data.success) {
       qs('#init-status').textContent = 'Initialisation failed.';
       qs('#init-error').classList.remove('hidden');
       return;
     }
     qs('#init-status').textContent = 'Connection OK. Preparing game...';
     // Wait for delayStartMs then start the game
-    if (delayStartMs > 0){
+    if (delayStartMs > 0) {
       await new Promise(resolve => setTimeout(resolve, delayStartMs));
     }
     try {
       await fetch('/write_rfid_token', {
-        method:'POST',
-        headers:{ 'Content-Type':'application/json' },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token_id: rfidTag })
       });
-      const startRes  = await fetch('/api/start_game', {
-        method:'POST',
-        headers:{ 'Content-Type':'application/json' },
+      const startRes = await fetch('/api/start_game', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ game_number: selectedGameId || 1, level_number: 1 })
       });
       const startData = await startRes.json();
-      if (!startData.success){
+      if (!startData.success) {
         qs('#init-status').textContent = startData.error || 'Failed to launch the game.';
         qs('#init-error').classList.remove('hidden');
         return;
@@ -625,7 +658,7 @@ async function runConnectionCheckAndStart(delayStartMs = 0, skipStart = false){
       qs('#init-status').textContent = 'Unexpected error during start.';
       qs('#init-error').classList.remove('hidden');
     }
-  } catch (e){
+  } catch (e) {
     console.error('Init/start error:', e);
     qs('#init-status').textContent = 'Unexpected error during initialisation.';
     qs('#init-error').classList.remove('hidden');
@@ -639,7 +672,7 @@ async function runConnectionCheckAndStart(delayStartMs = 0, skipStart = false){
  * each result with a short delay. Once complete, the status text is
  * updated and the error banner is shown if checks failed.
  */
-function showStoredInitResultsSequentially(){
+function showStoredInitResultsSequentially() {
   const stored = window.__initStoredResults;
   if (!stored || !stored.results) return;
   clearSteps();
@@ -649,17 +682,17 @@ function showStoredInitResultsSequentially(){
   qs('#init-status').textContent = 'Running connection checks...';
   const steps = stored.results;
   let idx = 0;
-  function displayNext(){
-    if (idx < steps.length){
+  function displayNext() {
+    if (idx < steps.length) {
       const step = steps[idx++];
-      const row  = addStepRow(step.displayName);
+      const row = addStepRow(step.displayName);
       setTimeout(() => {
         markRow(row, step.ok, step.message);
         setTimeout(displayNext, 200);
       }, 200);
     } else {
       // After animating all results
-      if (!stored.success){
+      if (!stored.success) {
         qs('#init-status').textContent = 'Initialisation failed.';
         qs('#init-error').classList.remove('hidden');
       } else {
@@ -671,11 +704,11 @@ function showStoredInitResultsSequentially(){
 }
 
 /** Retry connection checks (e.g. after a failure). */
-function retryConnectionCheck(){
+function retryConnectionCheck() {
   const errBox = qs('#init-error');
   if (errBox) errBox.classList.add('hidden');
   window.__initStarted = false;
-  window.__initReady   = false;
+  window.__initReady = false;
   window.__initSuccess = false;
   // On retry we run checks, then wait 3 seconds before auto-starting if ok
   runConnectionCheckAndStart(3000, false);
@@ -689,12 +722,12 @@ function retryConnectionCheck(){
  * Poll the server until the game signals completion, then show the
  * leaderboard screen.
  */
-function checkGameDone(){
+function checkGameDone() {
   const intv = setInterval(() => {
     fetch('/game_done')
       .then(r => r.json())
       .then(d => {
-        if (d.done){
+        if (d.done) {
           clearInterval(intv);
           showLeaderboard();
         }
@@ -710,17 +743,17 @@ function checkGameDone(){
  * message while fetching, then populates the podium and table. If the
  * fetch fails, an error message is displayed.
  */
-function showLeaderboard(){
+function showLeaderboard() {
   goToPage('page16');
   const tbody = qs('#leaderboard-body');
   if (!tbody) return;
   // Reset podium names and scores
-  ['first','second','third'].forEach(cls => {
+  ['first', 'second', 'third'].forEach(cls => {
     const pod = qs('.pod.' + cls);
-    if (pod){
-      const nameEl  = pod.querySelector('.pod-name');
+    if (pod) {
+      const nameEl = pod.querySelector('.pod-name');
       const scoreEl = pod.querySelector('.pod-score');
-      if (nameEl)  nameEl.textContent  = '';
+      if (nameEl) nameEl.textContent = '';
       if (scoreEl) scoreEl.textContent = '';
     }
   });
@@ -731,25 +764,25 @@ function showLeaderboard(){
     .then(r => r.json())
     .then(data => {
       const players = (data && data.leaderboard) ? data.leaderboard : [];
-      const podium  = [players[0], players[1], players[2]];
+      const podium = [players[0], players[1], players[2]];
       // Update podium
-      ['first','second','third'].forEach((cls, idx) => {
-        const pod   = qs('.pod.' + cls);
+      ['first', 'second', 'third'].forEach((cls, idx) => {
+        const pod = qs('.pod.' + cls);
         const player = podium[idx];
-        if (pod){
-          const nameEl  = pod.querySelector('.pod-name');
+        if (pod) {
+          const nameEl = pod.querySelector('.pod-name');
           const scoreEl = pod.querySelector('.pod-score');
-          if (nameEl)  nameEl.textContent  = player ? player.name  : '';
+          if (nameEl) nameEl.textContent = player ? player.name : '';
           if (scoreEl) scoreEl.textContent = player ? player.score : '';
         }
       });
       // Populate table
-      if (players.length <= 3){
+      if (players.length <= 3) {
         tbody.innerHTML = '<tr><td colspan="3">All players are on the podium!</td></tr>';
         return;
       }
-      tbody.innerHTML = players.slice(3).map((p,i) =>
-        `<tr><td>${i+4}</td><td>${p.name}</td><td>${p.score}</td></tr>`
+      tbody.innerHTML = players.slice(3).map((p, i) =>
+        `<tr><td>${i + 4}</td><td>${p.name}</td><td>${p.score}</td></tr>`
       ).join('');
     })
     .catch(err => {
@@ -765,7 +798,8 @@ function showLeaderboard(){
  * On window load, set up scanning, controller toggle, card slider and
  * preview overlay.
  */
-window.onload = function(){
+window.onload = function() {
+  console.log('Window loaded, initializing components');
   registerControllerToggle();
   beginAutoScan();
   initializeCardSlider('#game-card-container');
@@ -777,11 +811,10 @@ window.goToPage = goToPage;
 window.confirmPlayer = confirmPlayer;
 window.retryConnectionCheck = retryConnectionCheck;
 window.backToChoose = backToChoose;
-window.backToHome  = function(){
+window.backToHome = function() {
   // Return to page1 and restart scanning
   goToPage('page1');
   if (scanInterval) clearInterval(scanInterval);
   scanningActive = true;
   beginAutoScan();
 };
-
