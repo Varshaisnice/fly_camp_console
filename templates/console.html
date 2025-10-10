@@ -89,76 +89,94 @@
   </div>
 
   <!-- Page 4: Confirm & preview -->
-  <div class="screen" id="page_confirm">
-    <div class="confirm-container">
-      <div class="glass-box confirm-right">
-        <h2 id="chosen-game-title">You chose:</h2>
-        <p id="chosen-game-desc" class="chosen-desc"></p>
-        <!-- Static rules for all games. JS will show/hide the proper one -->
-        <div id="rules-container" class="game-rules">
-          <div id="rules-1" style="display:none;">
-            <h3 class="rules-title">🕹️ Rules – Hover &amp; Seek</h3>
-            <ul class="rules-list">
-              <li>You have 2 minutes on the clock.</li>
-              <li>There are 5 targets in the arena.</li>
-              <li>Fly your drone and hover over a target to score points.</li>
-              <li>The targets stay in place—focus on speed and control.</li>
-              <li>Collect the maximum score before time runs out!</li>
-            </ul>
-          </div>
-          <div id="rules-2" style="display:none;">
-            <h3 class="rules-title">🕹️ Rules – Hue’s the Boss</h3>
-            <ul class="rules-list">
-              <li>Four color nodes are always visible in the arena.</li>
-              <li>A master node flashes a color cue.</li>
-              <li>Fly your drone to the node with the matching color.</li>
-              <li>Each correct match earns you points.</li>
-              <li>Keep matching quickly to build your streak and score higher!</li>
-            </ul>
-          </div>
-          <div id="rules-3" style="display:none;">
-            <h3 class="rules-title">🕹️ Rules – Color Chaos</h3>
-            <ul class="rules-list">
-              <li>Five color nodes are always active in the arena.</li>
-              <li>A cue appears—it could be a word, its text color, or the background.</li>
-              <li>Each game uses only one type of cue (no switching mid-game).</li>
-              <li>Each cue links to a target color.</li>
-              <li>Fly to the correct node to score points.</li>
-            </ul>
-          </div>
+  <!-- Page 4: Confirm & preview -->
+<div class="screen" id="page_confirm">
+  <div class="confirm-container">
+    <div class="glass-box confirm-right">
+      <h2 id="chosen-game-title">You chose:</h2>
+      <p id="chosen-game-desc" class="chosen-desc"></p>
+      <!-- Static rules for all games. JS will show/hide the proper one -->
+      <div id="rules-container" class="game-rules">
+        <div id="rules-1" class="rule-set hidden">
+          <h3 class="rules-title">🕹️ Rules – Hover &amp; Seek</h3>
+          <ul class="rules-list">
+            <li>You have 2 minutes on the clock.</li>
+            <li>There are 5 targets in the arena.</li>
+            <li>Fly your drone and hover over a target to score points.</li>
+            <li>The targets stay in place—focus on speed and control.</li>
+            <li>Collect the maximum score before time runs out!</li>
+          </ul>
         </div>
-        <div class="btn-row big mt-8">
-          <button class="btn-ghost" onclick="goToPage('page_choose_game')">Back to Games</button>
-          <button class="btn-cta" id="confirm-game-btn">Confirm Game</button>
+        <div id="rules-2" class="rule-set hidden">
+          <h3 class="rules-title">🕹️ Rules – Hue’s the Boss</h3>
+          <ul class="rules-list">
+            <li>Four color nodes are always visible in the arena.</li>
+            <li>A master node flashes a color cue.</li>
+            <li>Fly your drone to the node with the matching color.</li>
+            <li>Each correct match earns you points.</li>
+            <li>Keep matching quickly to build your streak and score higher!</li>
+          </ul>
+        </div>
+        <div id="rules-3" class="rule-set hidden">
+          <h3 class="rules-title">🕹️ Rules – Color Chaos</h3>
+          <ul class="rules-list">
+            <li>Five color nodes are always active in the arena.</li>
+            <li>A cue appears—it could be a word, its text color, or the background.</li>
+            <li>Each game uses only one type of cue (no switching mid-game).</li>
+            <li>Each cue links to a target color.</li>
+            <li>Fly to the correct node to score points.</li>
+          </ul>
         </div>
       </div>
-    </div>
-    <!-- Fullscreen video overlay -->
-    <div id="video-overlay" class="video-overlay">
-      <video id="game-video" playsinline></video>
-      <button id="close-video" class="close-video">✖</button>
-      <button id="corner-progress" class="corner-progress" style="--prog:0%;">
-        <span class="corner-label">Choose Game</span>
-      </button>
+      <div class="btn-row big mt-8">
+        <button class="btn-ghost" onclick="goToPage('page_choose_game')">Back to Games</button>
+        <button class="btn-cta" id="confirm-game-btn">Confirm Game</button>
+      </div>
     </div>
   </div>
+  <!-- Fullscreen video overlay -->
+  
+</div>
 
-  <!-- Page 5: Initialisation -->
-  <div class="screen" id="page_initializing">
-    <div class="content-box init-wrap">
-      <div class="spinner" aria-hidden="true"></div>
-      <h2>Initialising game components</h2>
-      <p id="init-status" class="muted">Running connection checks...</p>
-      <div id="init-steps" class="steps"></div>
-      <div id="init-error" class="init-error hidden">
-        <p id="init-error-text">Initialisation failed. Please retry.</p>
-        <div class="init-actions btn-row big">
-          <button class="btn-cta" id="btn-init-retry" onclick="retryConnectionCheck()">Retry</button>
-          <button class="btn-ghost" id="btn-init-back" onclick="backToChoose()">Back</button>
-        </div>
+  
+<!-- Page 5: Initialisation -->
+<div class="screen" id="page_initializing">
+  <div class="content-box init-wrap">
+    <!-- Dynamic rules section -->
+    <div id="game-rules-dynamic" class="game-rules">
+      <div id="rules-dynamic" class="rule-set hidden">
+        <h3 id="rules-title-dynamic" class="rules-title"></h3>
+        <ul id="rules-list-dynamic" class="rules-list"></ul>
+      </div>
+    </div>
+    <!-- Initialization section -->
+    <div class="spinner" aria-hidden="true"></div>
+    <h2>Initialising game components</h2>
+    <p id="init-status" class="muted">Running connection checks...</p>
+    <div id="init-steps" class="steps">
+      <div class="step hidden" id="step-drone">
+        <span class="tick-mark">✔</span>
+        <span class="step-text">Drone Connection</span>
+      </div>
+      <div class="step hidden" id="step-arena">
+        <span class="tick-mark">✔</span>
+        <span class="step-text">Arena Setup</span>
+      </div>
+      <div class="step hidden" id="step-controls">
+        <span class="tick-mark">✔</span>
+        <span class="step-text">Controls Calibration</span>
+      </div>
+    </div>
+    <div id="init-error" class="init-error hidden">
+      <p id="init-error-text">Initialisation failed. Please retry.</p>
+      <div class="init-actions btn-row big">
+        <button class="btn-cta" id="btn-init-retry" onclick="retryConnectionCheck()">Retry</button>
+        <button class="btn-ghost" id="btn-init-back" onclick="backToChoose()">Back</button>
       </div>
     </div>
   </div>
+</div>
+
 
   <!-- Page 6: Leaderboard -->
   <div class="screen" id="page16">

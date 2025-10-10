@@ -1,3 +1,4 @@
+
 // FlyCamp – base functionality with improved initialisation sequence
 
 /*
@@ -60,6 +61,14 @@ function goToPage(id){
     if (slider && typeof slider.centerOnSecondCard === 'function') {
       slider.centerOnSecondCard();
     }
+  }
+  // If navigating to confirm page, update rules
+  if (id === 'page_confirm') {
+    updateConfirmPageRules();
+  }
+  // If navigating to initializing page, update rules
+  if (id === 'page_initializing') {
+    updateInitPageRules();
   }
 }
 
@@ -380,6 +389,57 @@ function registerPreviewOverlay(){
 }
 
 /* ------------------------------------------------------------------ */
+/* Rules Display                                                      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Update the rules display on the confirm page based on selectedGameId.
+ */
+function updateConfirmPageRules(){
+  const rulesIds = ['rules-1', 'rules-2', 'rules-3'];
+  rulesIds.forEach(id => {
+    const ruleSet = qs(`#${id}`);
+    if (ruleSet) {
+      ruleSet.classList.toggle('hidden', id !== `rules-${selectedGameId}`);
+    }
+  });
+}
+
+/**
+ * Update the rules display on the initializing page based on selectedGameId.
+ */
+function updateInitPageRules(){
+  const rulesContainer = qs('#rules-dynamic');
+  const rulesTitle = qs('#rules-title-dynamic');
+  const rulesList = qs('#rules-list-dynamic');
+  if (!rulesContainer || !rulesTitle || !rulesList) return;
+
+  // Map selectedGameId to rules div ID
+  const rulesMap = {
+    1: 'rules-1', // Hover & Seek
+    2: 'rules-2', // Hue’s the Boss
+    3: 'rules-3'  // Color Chaos
+  };
+  const sourceRulesId = rulesMap[selectedGameId] || 'rules-1';
+  const sourceRulesDiv = qs(`#${sourceRulesId}`);
+  if (!sourceRulesDiv) return;
+
+  // Copy title and list items
+  const sourceTitle = sourceRulesDiv.querySelector('.rules-title').innerHTML;
+  const sourceListItems = sourceRulesDiv.querySelectorAll('.rules-list li');
+  rulesTitle.innerHTML = sourceTitle;
+  rulesList.innerHTML = '';
+  sourceListItems.forEach(item => {
+    const li = document.createElement('li');
+    li.textContent = item.textContent;
+    rulesList.appendChild(li);
+  });
+
+  // Show the rules container
+  rulesContainer.classList.remove('hidden');
+}
+
+/* ------------------------------------------------------------------ */
 /* Initialisation sequence                                            */
 /* ------------------------------------------------------------------ */
 
@@ -400,8 +460,8 @@ function clearSteps(){
  */
 function addStepRow(name){
   const row = document.createElement('div');
-  row.className = 'step';
-  row.innerHTML = `<div>${name}</div><div>…</div>`;
+  row.className = 'step hidden';
+  row.innerHTML = `<span class="tick-mark">✔</span><span class="step-text">${name}</span>`;
   qs('#init-steps').appendChild(row);
   // Animate into view on the next frame
   requestAnimationFrame(() => row.classList.add('show'));
@@ -418,14 +478,11 @@ function addStepRow(name){
 function markRow(row, ok, msg){
   row.classList.toggle('ok', ok);
   row.classList.toggle('fail', !ok);
-  row.lastChild.textContent = ok ? '✓ OK' : '✗ Failed';
   if (msg){
     const m = document.createElement('div');
-    m.style.fontSize = '12px';
-    m.style.opacity  = '0.85';
-    m.style.margin   = '4px 0 0 6px';
-    m.textContent    = msg;
-    qs('#init-steps').appendChild(m);
+    m.className = 'step-message';
+    m.textContent = msg;
+    row.appendChild(m);
   }
 }
 
@@ -679,3 +736,4 @@ window.backToHome  = function(){
   scanningActive = true;
   beginAutoScan();
 };
+

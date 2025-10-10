@@ -503,3 +503,162 @@ button:active {
   from{transform:rotate(0deg);}
   to{transform:rotate(360deg);}
 }
+
+
+
+/* Enhanced rules list styling */
+.rules-list {
+  list-style: none; /* Remove default disc bullets */
+  padding: 0;
+  margin: 20px 0; /* Adequate margin around the list */
+}
+
+.rules-list li {
+  position: relative;
+  padding: 18px 24px 18px 50px; /* Padding with extra left for custom bullet */
+  margin-bottom: 16px; /* Spacing between list items */
+  font-size: clamp(16px, 2vw, 20px); /* Larger text (~20px at base) */
+  font-weight: 500;
+  color: #e0e0ff; /* Light neon-ish text for readability */
+  background-color: #2a1a3f; /* Blackish purple background */
+  border: 2px solid var(--accent); /* Neon magenta border using existing --accent (#bf00ff) */
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(191, 0, 255, 0.6), inset 0 0 10px rgba(191, 0, 255, 0.3); /* Neon glow */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rules-list li:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 25px rgba(191, 0, 255, 0.8), inset 0 0 15px rgba(191, 0, 255, 0.5); /* Enhanced glow on hover */
+}
+
+/* Custom neon bullet points */
+.rules-list li::before {
+  content: '•'; /* Bullet character */
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.8rem; /* Larger bullet */
+  color: #00ffff; /* Neon cyan for bullet */
+  text-shadow: 0 0 10px #00ffff; /* Glow for bullet */
+}
+
+/* Bigger heading for rules */
+.rules-title {
+  font-size: clamp(24px, 3vw, 36px) !important; /* Bigger heading (~36px at base) */
+  margin-bottom: 16px !important;
+  text-shadow: 0 0 10px var(--accent); /* Neon glow on title */
+  color: var(--accent) !important; /* Matches existing accent color */
+}
+
+/* Ensure rules container has space */
+.game-rules {
+  padding: 20px;
+  border-radius: 16px;
+  background: rgba(191, 0, 255, 0.1); /* Subtle glass-like overlay */
+}
+
+
+
+.game-rules {
+  padding: 20px;
+  border-radius: 16px;
+  background: rgba(191, 0, 255, 0.1); /* Subtle glass overlay */
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto 20px; /* Center and space below */
+}
+
+.rules-list {
+  list-style: none; /* Remove default bullets */
+  padding: 0;
+  margin: 20px 0; /* Adequate margin */
+}
+
+.rules-list li {
+  position: relative;
+  padding: 18px 24px 18px 50px; /* Padding with space for bullet */
+  margin-bottom: 16px; /* Spacing between items */
+  font-size: clamp(16px, 2vw, 20px); /* Larger text (~20px) */
+  font-weight: 500;
+  color: #e0e0ff; /* Light neon-ish text */
+  background-color: #2a1a3f; /* Blackish purple background */
+  border: 2px solid var(--accent); /* Neon magenta border */
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(191, 0, 255, 0.6), inset 0 0 10px rgba(191, 0, 255, 0.3); /* Neon glow */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rules-list li:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 25px rgba(191, 0, 255, 0.8), inset 0 0 15px rgba(191, 0, 255, 0.5); /* Enhanced glow */
+}
+
+.rules-list li::before {
+  content: '•'; /* Custom bullet */
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.8rem; /* Larger bullet */
+  color: #00ffff; /* Neon cyan */
+  text-shadow: 0 0 10px #00ffff; /* Bullet glow */
+}
+
+.rules-title {
+  font-size: clamp(24px, 3vw, 36px) !important; /* Bigger heading */
+  margin-bottom: 16px !important;
+  text-shadow: 0 0 10px var(--accent); /* Neon glow */
+  color: var(--accent) !important;
+}
+
+/* Tick-mark styling for initialization steps */
+.step {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* Align left */
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(191, 0, 255, 0.4);
+  background: rgba(191, 0, 255, 0.1);
+  transform: translateY(8px);
+  opacity: 0;
+  transition: all .28s ease;
+  margin-bottom: 10px; /* Space between steps */
+}
+
+.step.show {
+  transform: none;
+  opacity: 1;
+}
+
+.step.ok {
+  background: rgba(60, 179, 113, 0.18); /* Green for success */
+  border-color: rgba(60, 179, 113, 0.6);
+}
+
+.step.fail {
+  background: rgba(255, 87, 87, 0.15); /* Red for failure */
+  border-color: rgba(255, 87, 87, 0.6);
+}
+
+.tick-mark {
+  font-size: clamp(18px, 2vw, 22px); /* Large tick mark */
+  color: #00ff00; /* Neon green */
+  text-shadow: 0 0 10px #00ff00; /* Neon glow */
+  margin-right: 12px; /* Space between tick and text */
+}
+
+.step-text {
+  font-size: clamp(14px, 1.8vw, 18px); /* Slightly smaller than rules */
+  font-weight: 500;
+  color: #e0e0ff; /* Light text */
+}
+
+.step-message {
+  font-size: 12px;
+  opacity: 0.85;
+  margin: 4px 0 0 6px;
+  color: #e0e0ff;
+}
