@@ -1,89 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Test FlyCamp</title>
-  <style>
-    .screen { display: none; }
-    .screen.active { display: block; }
-    .card { cursor: pointer; padding: 20px; margin: 10px; border: 1px solid #bf00ff; }
-    .card * { pointer-events: none; }
-    .card { pointer-events: auto; }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FlyCamp</title>
+  <link rel="stylesheet" href="/static/css/console.css" />
+  <script defer src="/static/js/console.js"></script>
 </head>
 <body>
-  <div class="screen active" id="page_choose_game">
+  <!-- Background decor -->
+  <div class="circle top-left"></div>
+  <div class="circle bottom-right"></div>
+
+  <!-- Top-right logo toggle (joystick <-> gesture sensor) -->
+  <button id="logo-toggle" title="Toggle controller type">
+    <img src="/static/assets/flycamplogo.png" alt="FlyCamp" />
+  </button>
+
+  <!-- Page 1: Welcome -->
+  <div class="screen active" id="page1">
+    <div class="vcenter">
+      <img class="welcome-logo" src="/static/assets/welcome-logo.png" alt="Welcome to FlyCamp" />
+      <div id="loader1" class="mt-12">Waiting for token...</div>
+    </div>
+  </div>
+
+  <!-- Page 2: RFID confirmation -->
+  <div class="screen" id="page2">
+    <div class="vcenter">
+      <h2 id="greeting">Hi!</h2>
+      <p id="user-info"></p>
+      <div class="btn-row big">
+        <button class="btn-cta" onclick="confirmPlayer()">Confirm</button>
+        <button class="btn-ghost" onclick="goToPage('page1')">Back</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 3: Game select -->
+  <div class="screen" id="page_choose_game">
+    <img id="choose-image" src="/static/assets/choose your game.png" alt="Choose your game" />
     <div class="card-container" id="game-card-container">
-      <article class="card" data-game-id="1" data-title="Hover & Seek" data-desc="Test game" data-video="/static/assets/video1.mp4">
-        <h2>Hover & Seek</h2>
+      <article class="card"
+        data-game-id="1"
+        data-title="Hover & Seek"
+        data-desc="You have 2 minutes to hover over 5 targets. The targets don’t move, but speed and control are key; score as much as you can before time runs out!"
+        data-video="/static/assets/video1.mp4"
+        onclick="selectGame(1, 'Hover & Seek', 'You have 2 minutes to hover over 5 targets. The targets don’t move, but speed and control are key; score as much as you can before time runs out!', '/static/assets/video1.mp4')">
+        <h2 class="card-title">Hover &amp; Seek</h2>
+        <p class="card-desc">You have 2 minutes to hover over 5 targets. The targets don’t move, but speed and control are key; score as much as you can before time runs out!</p>
+        <div class="card-media">
+          <video class="card-video" muted playsinline preload="metadata">
+            <source src="/static/assets/video1.mp4" type="video/mp4" />
+          </video>
+        </div>
       </article>
-      <article class="card" data-game-id="2" data-title="Hue’s the Boss" data-desc="Test game 2" data-video="/static/assets/video1.mp4">
-        <h2>Hue’s the Boss</h2>
+
+      <article class="card"
+        data-game-id="2"
+        data-title="Hue’s the Boss"
+        data-desc="Four colors stand ready, but one moving master node gives the command. Follow its cue and prove you have got the reflexes to outsmart the color game. A master node shows the color; match it, hit it, keep the streak alive."
+        data-video="/static/assets/video1.mp4"
+        onclick="selectGame(2, 'Hue’s the Boss', 'Four colors stand ready, but one moving master node gives the command. Follow its cue and prove you have got the reflexes to outsmart the color game. A master node shows the color; match it, hit it, keep the streak alive.', '/static/assets/video1.mp4')">
+        <h2 class="card-title">Hue’s the Boss</h2>
+        <p class="card-desc">Four colors stand ready, but one moving master node gives the command. Follow its cue and prove you have got the reflexes to outsmart the color game. A master node shows the color; match it, hit it, keep the streak alive.</p>
+        <div class="card-media">
+          <video class="card-video" muted playsinline preload="metadata">
+            <source src="/static/assets/video1.mp4" type="video/mp4" />
+          </video>
+        </div>
+      </article>
+
+      <article class="card"
+        data-game-id="3"
+        data-title="Color Chaos"
+        data-desc="The game starts messing with your head; words, colors, backgrounds all mix to trick you. Only sharp eyes and a sharp memory survive."
+        data-video="/static/assets/video1.mp4"
+        onclick="selectGame(3, 'Color Chaos', 'The game starts messing with your head; words, colors, backgrounds all mix to trick you. Only sharp eyes and a sharp memory survive.', '/static/assets/video1.mp4')">
+        <h2 class="card-title">Color Chaos</h2>
+        <p class="card-desc">The game starts messing with your head; words, colors, backgrounds all mix to trick you. Only sharp eyes and a sharp memory survive.</p>
+        <div class="card-media">
+          <video class="card-video" muted playsinline preload="metadata">
+            <source src="/static/assets/video1.mp4" type="video/mp4" />
+          </video>
+        </div>
       </article>
     </div>
   </div>
+
+  <!-- Page 4: Confirm & preview -->
   <div class="screen" id="page_confirm">
-    <h2 id="chosen-game-title">You chose:</h2>
-    <p id="chosen-game-desc"></p>
-    <div id="video-overlay" style="display: none;">
+    <div class="confirm-container">
+      <div class="glass-box confirm-right">
+        <h2 id="chosen-game-title">You chose:</h2>
+        <p id="chosen-game-desc" class="chosen-desc"></p>
+        <!-- Static rules for all games. JS will show/hide the proper one -->
+        <div id="rules-container" class="game-rules">
+          <div id="rules-1" class="rule-set hidden">
+            <h3 class="rules-title">🕹️ Rules – Hover &amp; Seek</h3>
+            <ul class="rules-list">
+              <li>You have 2 minutes on the clock.</li>
+              <li>There are 5 targets in the arena.</li>
+              <li>Fly your drone and hover over a target to score points.</li>
+              <li>The targets stay in place—focus on speed and control.</li>
+              <li>Collect the maximum score before time runs out!</li>
+            </ul>
+          </div>
+          <div id="rules-2" class="rule-set hidden">
+            <h3 class="rules-title">🕹️ Rules – Hue’s the Boss</h3>
+            <ul class="rules-list">
+              <li>Four color nodes are always visible in the arena.</li>
+              <li>A master node flashes a color cue.</li>
+              <li>Fly your drone to the node with the matching color.</li>
+              <li>Each correct match earns you points.</li>
+              <li>Keep matching quickly to build your streak and score higher!</li>
+            </ul>
+          </div>
+          <div id="rules-3" class="rule-set hidden">
+            <h3 class="rules-title">🕹️ Rules – Color Chaos</h3>
+            <ul class="rules-list">
+              <li>Five color nodes are always active in the arena.</li>
+              <li>A cue appears—it could be a word, its text color, or the background.</li>
+              <li>Each game uses only one type of cue (no switching mid-game).</li>
+              <li>Each cue links to a target color.</li>
+              <li>Fly to the correct node to score points.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="btn-row big mt-8">
+          <button class="btn-ghost" onclick="goToPage('page_choose_game')">Back to Games</button>
+          <button class="btn-cta" id="confirm-game-btn">Confirm Game</button>
+        </div>
+      </div>
+    </div>
+    <!-- Fullscreen video overlay -->
+    <div id="video-overlay" class="video-overlay" style="display: none;">
       <video id="game-video" data-src="" playsinline></video>
-      <button id="close-video">Close</button>
-      <button id="corner-progress"></button>
+      <button id="close-video" class="btn-close">Close</button>
+      <button id="corner-progress" class="progress-btn"></button>
     </div>
   </div>
-  <script>
-    const qs = (s, r = document) => r.querySelector(s);
-    const qsa = (s, r = document) => Array.from(r.querySelectorAll(s));
-    
-    let selectedGameId, selectedGameTitle, selectedGameDesc;
-    
-    function goToPage(id) {
-      console.log('goToPage:', id);
-      qsa('.screen').forEach(s => s.classList.remove('active'));
-      const pageEl = qs(`#${id}`);
-      if (pageEl) {
-        pageEl.classList.add('active');
-      } else {
-        console.error('Page not found:', id);
-      }
-    }
-    
-    function initializeCardSlider(selector) {
-      const slider = qs(selector);
-      if (!slider) {
-        console.error('Slider not found:', selector);
-        return;
-      }
-      const cards = qsa('.card', slider);
-      if (cards.length === 0) {
-        console.error('No cards found');
-        return;
-      }
-      console.log('Found cards:', cards.length);
-      cards.forEach((card, index) => {
-        card.addEventListener('click', () => {
-          console.log(`Card ${index + 1} clicked:`, card.dataset.gameId);
-          selectedGameId = parseInt(card.getAttribute('data-game-id'), 10);
-          selectedGameTitle = card.getAttribute('data-title') || '';
-          selectedGameDesc = card.getAttribute('data-desc') || '';
-          const src = card.getAttribute('data-video') || '';
-          const titleEl = qs('#chosen-game-title');
-          const descEl = qs('#chosen-game-desc');
-          const videoEl = qs('#game-video');
-          if (titleEl && descEl && videoEl) {
-            titleEl.textContent = `You chose: ${selectedGameTitle}`;
-            descEl.textContent = selectedGameDesc;
-            videoEl.setAttribute('data-src', src);
-            goToPage('page_confirm');
-          } else {
-            console.error('Missing elements:', { titleEl, descEl, videoEl });
-          }
-        });
-      });
-    }
-    
-    window.onload = () => initializeCardSlider('#game-card-container');
-  </script>
+
+  <!-- Page 5: Initialisation -->
+  <div class="screen" id="page_initializing">
+    <div class="content-box init-wrap">
+      <!-- Dynamic rules section -->
+      <div id="game-rules-dynamic" class="game-rules">
+        <div id="rules-dynamic" class="rule-set hidden">
+          <h3 id="rules-title-dynamic" class="rules-title"></h3>
+          <ul id="rules-list-dynamic" class="rules-list"></ul>
+        </div>
+      </div>
+      <!-- Initialization section -->
+      <div class="spinner" aria-hidden="true"></div>
+      <h2>Initialising game components</h2>
+      <p id="init-status" class="muted">Running connection checks...</p>
+      <div id="init-steps" class="steps">
+        <div class="step hidden" id="step-drone">
+          <span class="tick-mark">✔</span>
+          <span class="step-text">Drone Connection</span>
+        </div>
+        <div class="step hidden" id="step-arena">
+          <span class="tick-mark">✔</span>
+          <span class="step-text">Arena Setup</span>
+        </div>
+        <div class="step hidden" id="step-controls">
+          <span class="tick-mark">✔</span>
+          <span class="step-text">Controls Calibration</span>
+        </div>
+      </div>
+      <div id="init-error" class="init-error hidden">
+        <p id="init-error-text">Initialisation failed. Please retry.</p>
+        <div class="init-actions btn-row big">
+          <button class="btn-cta" id="btn-init-retry" onclick="retryConnectionCheck()">Retry</button>
+          <button class="btn-ghost" id="btn-init-back" onclick="backToChoose()">Back</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 6: Leaderboard -->
+  <div class="screen" id="page16">
+    <div class="lb-wrap">
+      <h2 class="lb-title">Final Results</h2>
+      <section class="lb-podium">
+        <div class="pod first"><div class="pod-rank">1</div><div class="pod-name"></div><div class="pod-score"></div></div>
+        <div class="pod second"><div class="pod-rank">2</div><div class="pod-name"></div><div class="pod-score"></div></div>
+        <div class="pod third"><div class="pod-rank">3</div><div class="pod-name"></div><div class="pod-score"></div></div>
+      </section>
+      <section class="lb-table">
+        <table>
+          <thead><tr><th>Rank</th><th>Pilot</th><th>Score</th></tr></thead>
+          <tbody id="leaderboard-body"></tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+
+  <input type="hidden" id="rfidToken" />
 </body>
 </html>

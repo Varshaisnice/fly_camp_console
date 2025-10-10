@@ -23,12 +23,10 @@ const qsa = (s, r = document) => Array.from(r.querySelectorAll(s));
 
 function goToPage(id) {
   console.log('goToPage called with id:', id);
-  // Hide all screens
   qsa('.screen').forEach(s => {
     s.classList.remove('active');
     console.log('Hiding screen:', s.id);
   });
-  // Show the requested page
   const pageEl = qs(`#${id}`);
   if (pageEl) {
     pageEl.classList.add('active');
@@ -36,17 +34,14 @@ function goToPage(id) {
   } else {
     console.error('Page not found:', id);
   }
-  // Always use the default blue background for every page
   document.body.style.backgroundColor =
     getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
-  // If returning to choose-game page, recenter on Hue’s the Boss
   if (id === 'page_choose_game') {
     const slider = qs('#game-card-container');
     if (slider && typeof slider.centerOnSecondCard === 'function') {
       slider.centerOnSecondCard();
     }
   }
-  // Update rules when navigating to confirm or initializing page
   if (id === 'page_confirm') {
     updateConfirmPageRules();
   }
@@ -58,6 +53,53 @@ function goToPage(id) {
 /** Navigate back to the choose-game page. */
 function backToChoose() {
   goToPage('page_choose_game');
+}
+
+/** Handle card click via inline onclick */
+function selectGame(gameId, title, desc, video) {
+  console.log('selectGame called:', { gameId, title, desc, video });
+  try {
+    selectedGameId = parseInt(gameId, 10);
+    selectedGameTitle = title || 'Unknown Game';
+    selectedGameDesc = desc || '';
+    const src = video || '/static/assets/video1.mp4';
+
+    if (!selectedGameId || isNaN(selectedGameId)) {
+      console.error('Invalid game ID:', gameId);
+      return;
+    }
+
+    const titleEl = qs('#chosen-game-title');
+    const descEl = qs('#chosen-game-desc');
+    const videoEl = qs('#game-video');
+
+    if (!titleEl || !descEl || !videoEl) {
+      console.error('Confirm page elements missing:', {
+        titleEl: !!titleEl,
+        descEl: !!descEl,
+        videoEl: !!videoEl
+      });
+      return;
+    }
+
+    titleEl.textContent = `You chose: ${selectedGameTitle}`;
+    descEl.textContent = selectedGameDesc;
+    videoEl.setAttribute('data-src', src);
+
+    console.log('Navigating to page_confirm with game:', {
+      id: selectedGameId,
+      title: selectedGameTitle,
+      desc: selectedGameDesc,
+      video: src
+    });
+    goToPage('page_confirm');
+
+    window.__initStarted = false;
+    window.__initReady = false;
+    window.__initSuccess = false;
+  } catch (err) {
+    console.error('Error in selectGame:', err);
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -152,7 +194,6 @@ function initializeCardSlider(selector) {
 
   console.log('Found', cards.length, 'game cards');
 
-  // Pause all videos so only one plays at a time
   cards.forEach(card => {
     const vid = card.querySelector('.card-video');
     if (vid) {
@@ -190,62 +231,10 @@ function initializeCardSlider(selector) {
     });
   }
 
-  // Debounce scrolling to avoid jitter
   let scrollTimeout;
   slider.addEventListener('scroll', () => {
     if (scrollTimeout) clearTimeout(scrollTimeout);
     scrollTimeout = setTimeout(updateActiveCard, 80);
-  });
-
-  // When a card is clicked, capture its metadata and go to the confirm screen
-  cards.forEach((card, index) => {
-    card.addEventListener('click', (event) => {
-      console.log(`Card ${index + 1} clicked:`, card.dataset.gameId, card.dataset.title);
-      try {
-        const gameId = card.getAttribute('data-game-id');
-        selectedGameId = parseInt(gameId, 10);
-        selectedGameTitle = card.getAttribute('data-title') || 'Unknown Game';
-        selectedGameDesc = card.getAttribute('data-desc') || '';
-        const src = card.getAttribute('data-video') || '/static/assets/video1.mp4';
-
-        if (!selectedGameId || isNaN(selectedGameId)) {
-          console.error('Invalid game ID:', gameId);
-          return;
-        }
-
-        const titleEl = qs('#chosen-game-title');
-        const descEl = qs('#chosen-game-desc');
-        const videoEl = qs('#game-video');
-
-        if (!titleEl || !descEl || !videoEl) {
-          console.error('Confirm page elements missing:', {
-            titleEl: !!titleEl,
-            descEl: !!descEl,
-            videoEl: !!videoEl
-          });
-          return;
-        }
-
-        titleEl.textContent = `You chose: ${selectedGameTitle}`;
-        descEl.textContent = selectedGameDesc;
-        videoEl.setAttribute('data-src', src);
-
-        console.log('Navigating to page_confirm with game:', {
-          id: selectedGameId,
-          title: selectedGameTitle,
-          desc: selectedGameDesc,
-          video: src
-        });
-        goToPage('page_confirm');
-
-        // Reset initialization state
-        window.__initStarted = false;
-        window.__initReady = false;
-        window.__initSuccess = false;
-      } catch (err) {
-        console.error('Error in card click handler:', err);
-      }
-    });
   });
 
   function centreOnSecondCard() {
@@ -653,3 +642,4 @@ window.backToHome = function() {
   scanningActive = true;
   beginAutoScan();
 };
+window.selectGame = selectGame;
