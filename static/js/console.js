@@ -62,11 +62,10 @@ function goToPage(id){
       slider.centerOnSecondCard();
     }
   }
-  // If navigating to confirm page, update rules
+  // Update rules when navigating to confirm or initializing page
   if (id === 'page_confirm') {
     updateConfirmPageRules();
   }
-  // If navigating to initializing page, update rules
   if (id === 'page_initializing') {
     updateInitPageRules();
   }
