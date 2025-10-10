@@ -662,3 +662,19 @@ button:active {
   margin: 4px 0 0 6px;
   color: #e0e0ff;
 }
+
+.screen {
+  display: none;
+}
+.screen.active {
+  display: block;
+}
+.card {
+  cursor: pointer;
+}
+.card * {
+  pointer-events: none;
+}
+.card {
+  pointer-events: auto;
+}

@@ -51,7 +51,11 @@ function goToPage(id){
   qsa('.screen').forEach(s => s.classList.remove('active'));
   // Show the requested page
   const pageEl = qs(`#${id}`);
-  if (pageEl) pageEl.classList.add('active');
+  if (pageEl) {
+    pageEl.classList.add('active');
+  } else {
+    console.error('Page not found:', id);
+  }
   // Always use the default blue background for every page
   document.body.style.backgroundColor =
     getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
@@ -70,7 +74,6 @@ function goToPage(id){
     updateInitPageRules();
   }
 }
-
 /** Navigate back to the choose-game page. */
 function backToChoose(){
   goToPage('page_choose_game');
@@ -169,7 +172,6 @@ function confirmPlayer(){
 /* ------------------------------------------------------------------ */
 /* Game selection slider                                              */
 /* ------------------------------------------------------------------ */
-
 /**
  * Initialise the horizontal slider of game cards. Only the card in
  * focus plays its video. Cards snap to the centre on swipe. On load
@@ -178,41 +180,52 @@ function confirmPlayer(){
  *
  * @param {string} selector The CSS selector for the card container
  */
-function initializeCardSlider(selector){
+function initializeCardSlider(selector) {
   const slider = qs(selector);
-  if (!slider) return;
+  if (!slider) {
+    console.error('Slider not found for selector:', selector);
+    return;
+  }
   const cards = qsa('.card', slider);
+  if (cards.length === 0) {
+    console.error('No game cards found in slider:', selector);
+    return;
+  }
+
+  console.log('Found', cards.length, 'game cards:', cards);
 
   // Pause all videos so only one plays at a time
   cards.forEach(card => {
     const vid = card.querySelector('.card-video');
-    if (vid){
+    if (vid) {
       vid.pause();
       vid.currentTime = 0;
+    } else {
+      console.warn('No video element found in card:', card);
     }
   });
 
   /** Mark the card closest to the centre as active and play its video. */
-  function updateActiveCard(){
+  function updateActiveCard() {
     const centre = slider.scrollLeft + slider.clientWidth / 2;
     let closest = null;
     let minDist = Infinity;
     cards.forEach(card => {
       const cc = card.offsetLeft + card.offsetWidth / 2;
       const dist = Math.abs(cc - centre);
-      if (dist < minDist){
+      if (dist < minDist) {
         minDist = dist;
         closest = card;
       }
     });
     cards.forEach(card => {
       const vid = card.querySelector('.card-video');
-      if (card === closest){
+      if (card === closest) {
         card.classList.add('is-active');
-        if (vid) vid.play().catch(() => {});
+        if (vid) vid.play().catch(err => console.error('Video play error:', err));
       } else {
         card.classList.remove('is-active');
-        if (vid){
+        if (vid) {
           vid.pause();
           vid.currentTime = 0;
         }
@@ -228,27 +241,64 @@ function initializeCardSlider(selector){
   });
 
   // When a card is clicked, capture its metadata and go to the confirm screen
-  cards.forEach(card => {
-    card.addEventListener('click', () => {
-      selectedGameId    = parseInt(card.getAttribute('data-game-id'), 10);
-      selectedGameTitle = card.getAttribute('data-title') || '';
-      selectedGameDesc  = card.getAttribute('data-desc')  || '';
-      qs('#chosen-game-title').textContent = `You chose: ${selectedGameTitle}`;
-      qs('#chosen-game-desc').textContent  = selectedGameDesc;
-      const src = card.getAttribute('data-video') || '/static/assets/video1.mp4';
-      qs('#game-video').setAttribute('data-src', src);
-      goToPage('page_confirm');
-      // Reset initialisation state for this game selection
-      window.__initStarted = false;
-      window.__initReady   = false;
-      window.__initSuccess = false;
+  cards.forEach((card, index) => {
+    card.addEventListener('click', (event) => {
+      console.log(`Card ${index + 1} clicked:`, card, 'Event:', event);
+      try {
+        const gameId = card.getAttribute('data-game-id');
+        selectedGameId = parseInt(gameId, 10);
+        selectedGameTitle = card.getAttribute('data-title') || '';
+        selectedGameDesc = card.getAttribute('data-desc') || '';
+        const src = card.getAttribute('data-video') || '/static/assets/video1.mp4';
+
+        if (!selectedGameId || isNaN(selectedGameId)) {
+          console.error('Invalid game ID:', gameId);
+          return;
+        }
+
+        const titleEl = qs('#chosen-game-title');
+        const descEl = qs('#chosen-game-desc');
+        const videoEl = qs('#game-video');
+
+        if (!titleEl || !descEl || !videoEl) {
+          console.error('Confirm page elements missing:', {
+            titleEl: !!titleEl,
+            descEl: !!descEl,
+            videoEl: !!videoEl
+          });
+          return;
+        }
+
+        titleEl.textContent = `You chose: ${selectedGameTitle}`;
+        descEl.textContent = selectedGameDesc;
+        videoEl.setAttribute('data-src', src);
+
+        console.log('Setting game data:', {
+          selectedGameId,
+          selectedGameTitle,
+          selectedGameDesc,
+          videoSrc: src
+        });
+        console.log('Attempting to navigate to page_confirm');
+        goToPage('page_confirm');
+
+        // Reset initialisation state for this game selection
+        window.__initStarted = false;
+        window.__initReady = false;
+        window.__initSuccess = false;
+      } catch (err) {
+        console.error('Error in card click handler:', err);
+      }
     });
   });
 
   /** Centre the slider on the second card (Hue’s the Boss). */
-  function centreOnSecondCard(){
+  function centreOnSecondCard() {
     const second = cards[1];
-    if (!second) return;
+    if (!second) {
+      console.error('Second card not found for centering');
+      return;
+    }
     const offset = second.offsetLeft - (slider.clientWidth / 2) + (second.clientWidth / 2);
     slider.scrollLeft = offset;
     updateActiveCard();
@@ -259,7 +309,6 @@ function initializeCardSlider(selector){
   // Recenter shortly after page load
   setTimeout(centreOnSecondCard, 50);
 }
-
 /* ------------------------------------------------------------------ */
 /* Confirm & preview overlay                                          */
 /* ------------------------------------------------------------------ */
