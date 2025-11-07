@@ -1,22 +1,3 @@
-function showGameRules(card) {
-  const container = document.getElementById("rules-list-dynamic");
-  container.innerHTML = ""; // clear old rules
-
-  const rules = card.dataset.desc.split(";").map(r => r.trim()).filter(Boolean);
-
-  rules.forEach(rule => {
-    const ruleCard = document.createElement("div");
-    ruleCard.className = "rule-card";
-    ruleCard.textContent = rule;
-    container.appendChild(ruleCard);
-  });
-
-  // show section
-  document.getElementById("rules-dynamic").classList.remove("hidden");
-  document.getElementById("rules-title-dynamic").textContent = `🕹️ Rules – ${card.dataset.title}`;
-}
-
-
 <!-- ==== GAME 1 – Mine Seeker ==== -->
 <article class="card"
   data-game-id="1"
@@ -25,26 +6,11 @@ function showGameRules(card) {
   <h2 class="card-title">Mine Seeker</h2>
 
   <div class="point-cards">
-    <div class="point-card">
-      <span class="point-bullet"></span>
-      <p>An <strong>angel drone</strong> must disarm glowing mines to protect everyone on the battlefield.</p>
-    </div>
-    <div class="point-card">
-      <span class="point-bullet"></span>
-      <p>At any time, <strong>one mine activates</strong> and glows <strong>red</strong>.</p>
-    </div>
-    <div class="point-card">
-      <span class="point-bullet"></span>
-      <p>Fly your drone over it to <strong>disarm</strong> and score a point.</p>
-    </div>
-    <div class="point-card">
-      <span class="point-bullet"></span>
-      <p>Once defused, <strong>another mine activates</strong>.</p>
-    </div>
-    <div class="point-card">
-      <span class="point-bullet"></span>
-      <p>Disarm as many as possible before the <strong>timer ends</strong>!</p>
-    </div>
+    <div class="point-card"><span class="point-bullet"></span><p>An <strong>angel drone</strong> must disarm glowing mines to protect the battlefield.</p></div>
+    <div class="point-card"><span class="point-bullet"></span><p>One mine <strong>activates and glows red</strong> at a time.</p></div>
+    <div class="point-card"><span class="point-bullet"></span><p>Fly over it to <strong>disarm</strong> and score.</p></div>
+    <div class="point-card"><span class="point-bullet"></span><p>New mine activates after each disarm.</p></div>
+    <div class="point-card"><span class="point-bullet"></span><p>Disarm as many as possible before <strong>time runs out</strong>!</p></div>
   </div>
 
   <div class="card-media">
@@ -60,26 +26,11 @@ function showGameRules(card) {
   <h2 class="card-title">Candy Commander</h2>
 
   <div class="point-cards">
-    <div class="point-card">
-      <span class="point-bullet"></span>
-      <p>A <strong>hungry Candy Boss</strong> demands sweets — follow its colors!</p>
-    </div>
-    <div class="point-card">
-      <span class="point-bullet"></span>
-      <p>The Candy Boss <strong>flashes a color cue</strong> showing what it wants.</p>
-    </div>
-    <div class="point-card">
-      <span class="point-bullet"></span>
-      <p>Fly your drone over the <strong>matching candy station</strong> to deliver it.</p>
-    </div>
-    <div class="point-card">
-      <span class="point-bullet"></span>
-      <p><strong>Quick responses</strong> increase your score!</p>
-    </div>
-    <div class="point-card">
-      <span class="point-bullet"></span>
-      <p>Feed the Candy Boss before <strong>time runs out</strong>.</p>
-    </div>
+    <div class="point-card"><span class="point-bullet"></span><p>A <strong>hungry Candy Boss</strong> demands sweets — obey its color!</p></div>
+    <div class="point-card"><span class="point-bullet"></span><p>It <strong>flashes a color cue</strong> showing what it wants.</p></div>
+    <div class="point-card"><span class="point-bullet"></span><p>Fly to the <strong>matching candy station</strong> to deliver.</p></div>
+    <div class="point-card"><span class="point-bullet"></span><p><strong>Fast deliveries</strong> = higher score!</p></div>
+    <div class="point-card"><span class="point-bullet"></span><p>Feed it before <strong>time ends</strong>.</p></div>
   </div>
 
   <div class="card-media">
@@ -95,29 +46,106 @@ function showGameRules(card) {
   <h2 class="card-title">Code Breaker</h2>
 
   <div class="point-cards">
-    <div class="point-card">
-      <span class="point-bullet"></span>
-      <p>An <strong>evil AI</strong> is corrupting a data center — decode the colors and secure the ports.</p>
-    </div>
-    <div class="point-card">
-      <span class="point-bullet"></span>
-      <p>Each round, the system shows <strong>glitched color cues</strong>.</p>
-    </div>
-    <div class="point-card">
-      <span class="point-bullet"></span>
-      <p>Decode whether the correct clue is <strong>text, font color, or background</strong>.</p>
-    </div>
-    <div class="point-card">
-      <span class="point-bullet"></span>
-      <p>Fly to the correct <strong>data port</strong> to secure it.</p>
-    </div>
-    <div class="point-card">
-      <span class="point-bullet"></span>
-      <p><strong>Wrong captures reduce your score</strong> — think fast!</p>
-    </div>
+    <div class="point-card"><span class="point-bullet"></span><p>An <strong>evil AI</strong> corrupts the data center — decode colors to secure ports.</p></div>
+    <div class="point-card"><span class="point-bullet"></span><p>Each round shows <strong>glitched color cues</strong>.</p></div>
+    <div class="point-card"><span class="point-bullet"></span><p>Decode if clue is <strong>text, font color, or background</strong>.</p></div>
+    <div class="point-card"><span class="point-bullet"></span><p>Fly to the <strong>correct data port</strong> to secure it.</p></div>
+    <div class="point-card"><span class="point-bullet"></span><p><strong>Wrong move = score loss</strong> — think fast!</p></div>
   </div>
 
   <div class="card-media">
     <img class="card-image" src="static/assets/color_chaos.png" alt="Code Breaker Drone"/>
   </div>
 </article>
+
+
+
+
+
+/* -------------------------------------------------
+   POINT CARDS – BIG, GLOWING, ANIMATED (data-desc = "")
+   ------------------------------------------------- */
+.point-cards {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 18px 0;
+  padding: 0 14px;
+}
+
+.point-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 15px 18px;
+  background: rgba(191, 0, 255, 0.15);
+  border: 1.5px solid rgba(191, 0, 255, 0.38);
+  border-radius: 18px;
+  backdrop-filter: blur(11px);
+  -webkit-backdrop-filter: blur(11px);
+  transition: all 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  transform: translateY(14px);
+  animation: fadeInUp 0.6s forwards;
+}
+
+.point-card:nth-child(1) { animation-delay: 0.1s; }
+.point-card:nth-child(2) { animation-delay: 0.2s; }
+.point-card:nth-child(3) { animation-delay: 0.3s; }
+.point-card:nth-child(4) { animation-delay: 0.4s; }
+.point-card:nth-child(5) { animation-delay: 0.5s; }
+
+.point-card:hover {
+  background: rgba(191, 0, 255, 0.26);
+  border-color: #ff66ff;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(191, 0, 255, 0.32);
+}
+
+.point-bullet {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  background: linear-gradient(135deg, #ff00ff, #bf00ff);
+  border-radius: 50%;
+  box-shadow: 0 0 16px rgba(255, 0, 255, 0.75);
+  position: relative;
+  margin-top: 3px;
+}
+
+.point-bullet::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  background: radial-gradient(circle, rgba(255, 0, 255, 0.55), transparent 70%);
+  border-radius: 50%;
+  animation: pulseGlow 2.3s infinite;
+}
+
+.point-card p {
+  margin: 0;
+  font-size: clamp(15.5px, 1.95vw, 20.5px);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.97);
+  line-height: 1.58;
+  text-align: left;
+}
+
+.point-card p strong {
+  color: #ffccff;
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(255, 204, 255, 0.6);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.65; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.4); }
+}
+
+/* Hide old desc (optional) */
+.card-desc { display: none; }
