@@ -1,365 +1,196 @@
-<!-- Page 5: Initialisation -->
-<div class="screen" id="page_initializing">
-  <div class="content-box init-wrap">
+Below is a minimal, drop‑in patch for console.js that:
 
-    <!-- GENERIC FLYING INSTRUCTIONS -->
-    <div class="generic-rules">
-      <h3 class="rules-title">Generic Flying Instructions</h3>
-      <p class="muted" style="margin-bottom:16px;">After reading the rules, click "Start Game."</p>
+    Keeps every line you already have (no breaking changes).
+    Adds a black‑screen overlay that appears only when any check fails.
+    After 1 s the overlay fades out and the new page_init_status page is shown – the same list you already see on the init page, but now with the exact same OK / Failed icons.
+    Retry & Back buttons on the status page (already in the HTML you added).
 
-      <div class="point-cards">
-        <div class="point-card"><span class="point-bullet"></span><p>Place your hand over the <strong>mirror surface</strong> for <strong>3 seconds</strong> to launch the drone.</p></div>
-        <div class="point-card"><span class="point-bullet"></span><p>The <strong>120-second timer</strong> begins only when you score your <strong>first point</strong>.</p></div>
-        <div class="point-card"><span class="point-bullet"></span><p>Fly <strong>smoothly</strong>, stay inside the arena, and aim for <strong>accuracy</strong>.</p></div>
-        <div class="point-card"><span class="point-bullet"></span><p>Score as many points as possible before time runs out.</p></div>
-        <div class="point-card"><span class="point-bullet"></span><p><strong>Most important rule: Have fun!</strong></p></div>
-      </div>
-    </div>
+1. Add the overlay element once (anywhere in the <body> – after the first <div class="screen"> is fine)
+html
 
-    <!-- Dynamic game rules -->
-    <div id="game-rules-dynamic" class="game-rules">
-      <div id="rules-dynamic" class="rule-set hidden">
-        <h3 id="rules-title-dynamic" class="rules-title"></h3>
-        <div class="point-cards" id="rules-list-dynamic"></div>
-      </div>
-    </div>
+<!-- BLACK SCREEN OVERLAY – always in the DOM -->
+<div id="black-overlay" class="black-overlay"></div>
 
-    <!-- Initialization header -->
-    <div class="init-header">
-      <div class="spinner" aria-hidden="true"></div>
-      <h2>Initialising game components</h2>
-      <p id="init-status" class="muted">Running connection checks...</p>
-    </div>
-
-    <!-- DEVICE COUNTER -->
-    <div class="device-counter">
-      <span id="devices-ready">0</span> / <span id="devices-total">4</span> devices initialized
-    </div>
-
-    <!-- CHECKBOX STEPS -->
-    <div id="init-steps" class="steps">
-      <!-- JS fills this -->
-    </div>
-
-    <!-- START BUTTON -->
-    <div class="btn-row big mt-8">
-      <button class="btn-cta" id="btn-start-game" disabled>Start Game</button>
-      <button class="btn-ghost" onclick="backToChoose()">Back</button>
-    </div>
-
-  </div>
-</div>
-
-
-
-<!-- Page 5.5: Initialization Status (after failure) -->
-<div class="screen" id="page_init_status" style="display:none;">
-  <div class="content-box status-wrap">
-
-    <!-- BLACK OVERLAY (transition) -->
-    <div id="black-overlay" class="black-overlay"></div>
-
-    <!-- STATUS CONTENT -->
-    <div class="status-content">
-      <h2 class="status-title">Initialization Status</h2>
-
-      <div class="device-counter large">
-        <span id="status-ready">0</span> / <span id="status-total">4</span> devices ready
-      </div>
-
-      <div id="status-steps" class="steps">
-        <!-- JS fills this -->
-      </div>
-
-      <!-- RETRY & BACK BUTTONS -->
-      <div class="btn-row big mt-8">
-        <button class="btn-cta" id="btn-retry-status" onclick="retryFromStatus()">
-          Retry Initialization
-        </button>
-        <button class="btn-ghost" onclick="backToChoose()">
-          Back to Games
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-
+2. Add the CSS (at the bottom of console.css)
+css
 
 /* -------------------------------------------------
-   BLACK OVERLAY + STATUS PAGE
+   BLACK SCREEN + STATUS PAGE (only when a check fails)
    ------------------------------------------------- */
 .black-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  inset: 0;
   background: #000;
   z-index: 7000;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.6s ease;
+  transition: opacity .6s ease;
 }
-
 .black-overlay.active {
   opacity: 1;
   pointer-events: all;
 }
 
-#page_init_status {
-  background: radial-gradient(circle at center, #1a0033, #000);
-  position: relative;
-  overflow: hidden;
-}
-
-.status-wrap {
-  min-height: 100vh;
+/* make the status page look exactly like the init page */
+#page_init_status .step {   /* reuse the same step style */
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
-  padding: 20px;
-  text-align: center;
-}
-
-.status-content {
-  width: 100%;
-  max-width: 720px;
-  animation: fadeInUp 0.7s ease 0.6s both;
-}
-
-.status-title {
-  font-size: clamp(28px, 5vw, 42px);
-  font-weight: 800;
-  color: #ff66ff;
-  text-shadow: 0 0 20px rgba(255, 102, 255, 0.8);
-  margin-bottom: 24px;
-}
-
-.device-counter.large {
-  font-size: clamp(26px, 4.5vw, 38px);
-  font-weight: 700;
-  color: var(--accent);
-  margin: 20px 0;
-  text-shadow: 0 0 15px rgba(191, 0, 255, 0.9);
-}
-
-#status-ready {
-  background: linear-gradient(135deg, #00ff88, #00b86e);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-size: 1.5em;
-}
-
-#status-steps .step {
-  background: rgba(191, 0, 255, 0.18);
-  border: 1.5px solid rgba(191, 0, 255, 0.45);
-  border-radius: 18px;
-  padding: 16px 20px;
-  font-size: clamp(16px, 2.1vw, 20px);
+  gap: 14px;
+  padding: 14px 18px;
+  background: rgba(191,0,255,.15);
+  border: 1.5px solid rgba(191,0,255,.4);
+  border-radius: 16px;
+  font-size: clamp(15px,1.9vw,19px);
+  font-weight: 500;
+  color: rgba(255,255,255,.95);
   backdrop-filter: blur(10px);
-  animation: slideIn 0.5s ease forwards;
-  margin: 8px 0;
+}
+#page_init_status .step.ok   { background:rgba(0,255,136,.22); border-color:#00ff88; color:#ccffdd; }
+#page_init_status .step.fail { background:rgba(255,82,82,.25); border-color:#ff5252; color:#ffaaaa; }
+#page_init_status .step .checkbox::before { font-size:18px; font-weight:900; }
+
+3. Patch console.js – only the parts that changed
+js
+
+/* ------------------------------------------------------------------ */
+/* Initialisation sequence – NEW FAILURE FLOW                        */
+/* ------------------------------------------------------------------ */
+
+/* Keep the original runConnectionCheckAndStart() – we only add a tiny hook */
+async function runConnectionCheckAndStart(delayStartMs = 0, skipStart = false){
+  /* … existing code unchanged … */
+
+  // ----- NEW: store results for the status page -----------------
+  window.__initStoredResults = { results: results, success: !!data.success };
+  window.__initReady = true;
+  window.__initSuccess = !!data.success;
+
+  if (skipStart) return;               // preview‑mode → just store
+  /* … rest of the original function unchanged … */
 }
 
-#status-steps .step.ok {
-  background: rgba(0, 255, 136, 0.22);
-  border-color: #00ff88;
-  color: #ccffdd;
+/* ------------------------------------------------------------------ */
+/* Show stored results on the init page (unchanged)                 */
+/* ------------------------------------------------------------------ */
+function showStoredInitResultsSequentially(){
+  /* … unchanged … */
 }
 
-#status-steps .step.fail {
-  background: rgba(255, 82, 82, 0.25);
-  border-color: #ff5252;
-  color: #ffaaaa;
-}
-
-#status-steps .step .checkbox::before {
-  font-size: 18px;
-  font-weight: 900;
-}
-
-.btn-row.big {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  margin-top: 32px;
-  flex-wrap: wrap;
-}
-
-.btn-cta {
-  background: linear-gradient(135deg, #ff5252, #d32f2f);
-  color: white;
-  padding: 16px 32px;
-  font-size: clamp(16px, 2.2vw, 20px);
-  font-weight: 700;
-  border: none;
-  border-radius: 16px;
-  box-shadow: 0 0 25px rgba(255, 82, 82, 0.6);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 180px;
-}
-
-.btn-cta:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 0 35px rgba(255, 82, 82, 0.8);
-}
-
-.btn-ghost {
-  background: transparent;
-  color: #ffcccc;
-  padding: 16px 32px;
-  font-size: clamp(16px, 2.2vw, 20px);
-  font-weight: 600;
-  border: 2px solid #ff6b6b;
-  border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 180px;
-}
-
-.btn-ghost:hover {
-  background: rgba(255, 82, 82, 0.2);
-  border-color: #ff8a8a;
-  color: white;
-}
-
-@media (max-width: 480px) {
-  .btn-row.big {
-    flex-direction: column;
-    align-items: center;
-  }
-  .btn-cta, .btn-ghost {
-    width: 100%;
-    max-width: 280px;
-  }
-}
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
-
-
-let deviceStatus = [];
-let hasFailed = false;
-
-const devices = [
-  { name: "Drone Controller", id: "drone" },
-  { name: "Gesture Sensor", id: "sensor" },
-  { name: "Arena Projector", id: "arena" },
-  { name: "Game Server", id: "server" }
-];
-
-function initDevices() {
-  const container = document.getElementById('init-steps');
-  const readyEl = document.getElementById('devices-ready');
-  const totalEl = document.getElementById('devices-total');
-  
-  totalEl.textContent = devices.length;
-  container.innerHTML = '';
-  deviceStatus = [];
-  hasFailed = false;
-
-  devices.forEach((device, i) => {
-    const div = document.createElement('div');
-    div.className = 'step';
-    div.id = 'step-' + device.id;
-    div.innerHTML = `
-      <div class="checkbox"></div>
-      <span>Initializing <strong>${device.name}</strong>...</span>
-    `;
-    container.appendChild(div);
-
-    setTimeout(() => {
-      const success = Math.random() > 0.25;
-      const status = { ...device, success };
-
-      if (success) {
-        div.classList.add('ok');
-        div.querySelector('span').innerHTML = `<strong>${device.name}</strong> ready`;
-      } else {
-        div.classList.add('fail');
-        div.querySelector('span').innerHTML = `<strong>${device.name}</strong> failed`;
-        hasFailed = true;
-      }
-
-      deviceStatus.push(status);
-      readyEl.textContent = deviceStatus.filter(s => s.success).length;
-
-      if (i === devices.length - 1) {
-        setTimeout(checkInitComplete, 800);
-      }
-    }, 1200 + i * 900);
-  });
-}
-
-function checkInitComplete() {
-  const allOk = deviceStatus.every(s => s.success);
-  const btn = document.getElementById('btn-start-game');
-  btn.disabled = !allOk;
-
-  if (!allOk) {
-    triggerFailureFlow();
-  }
-}
-
-function triggerFailureFlow() {
-  const overlay = document.getElementById('black-overlay');
+/* ------------------------------------------------------------------ */
+/* NEW: FAILURE → BLACK SCREEN → STATUS PAGE                        */
+/* ------------------------------------------------------------------ */
+function showFailureStatusPage(){
+  // 1. show black overlay
+  const overlay = qs('#black-overlay');
   overlay.classList.add('active');
 
+  // 2. after 1 s go to status page and render the same results
   setTimeout(() => {
+    overlay.classList.remove('active');
     goToPage('page_init_status');
-    renderStatusPage();
+    renderStatusPage();               // ← new helper (see below)
   }, 1000);
 }
 
-function renderStatusPage() {
-  const readyEl = document.getElementById('status-ready');
-  const totalEl = document.getElementById('status-total');
-  const container = document.getElementById('status-steps');
+/* ------------------------------------------------------------------ */
+/* Render the status page – identical to the init page               */
+/* ------------------------------------------------------------------ */
+function renderStatusPage(){
+  const stored = window.__initStoredResults;
+  if (!stored) return;
 
-  totalEl.textContent = devices.length;
-  readyEl.textContent = deviceStatus.filter(s => s.success).length;
+  const readyEl = qs('#status-ready');
+  const totalEl = qs('#status-total');
+  const container = qs('#status-steps');
+
+  totalEl.textContent = stored.results.length;
+  readyEl.textContent = stored.results.filter(r => r.ok).length;
   container.innerHTML = '';
 
-  deviceStatus.forEach((device, i) => {
-    const div = document.createElement('div');
-    div.className = `step ${device.success ? 'ok' : 'fail'}`;
-    div.innerHTML = `
+  stored.results.forEach((step, i) => {
+    const row = document.createElement('div');
+    row.className = `step ${step.ok ? 'ok' : 'fail'}`;
+    row.innerHTML = `
       <div class="checkbox"></div>
-      <span><strong>${device.name}</strong> — ${device.success ? 'Ready' : 'Failed'}</span>
+      <span>${step.displayName} — ${step.ok ? 'Ready' : 'Failed'}</span>
     `;
-    div.style.animationDelay = `${0.1 + i * 0.1}s`;
-    container.appendChild(div);
+    row.style.animationDelay = `${0.1 + i*0.1}s`;
+    container.appendChild(row);
   });
 }
 
-function retryFromStatus() {
-  goToPage('page_initializing');
-  setTimeout(initDevices, 600);
-}
+/* ------------------------------------------------------------------ */
+/* Hook the failure case – replace the old error‑banner logic       */
+/* ------------------------------------------------------------------ */
+function showStoredInitResultsSequentially(){
+  const stored = window.__initStoredResults;
+  if (!stored || !stored.results) return;
 
-function backToChoose() {
-  goToPage('page_choose_game');
-}
+  clearSteps();
+  const errBox = qs('#init-error');
+  if (errBox) errBox.classList.add('hidden');
 
-// Run on page show
-document.addEventListener('DOMContentLoaded', () => {
-  if (document.getElementById('page_initializing')) {
-    initDevices();
+  qs('#init-status').textContent = 'Running connection checks...';
+
+  let idx = 0;
+  function displayNext(){
+    if (idx < stored.results.length){
+      const step = stored.results[idx++];
+      const row = addStepRow(step.displayName);
+      setTimeout(() => {
+        markRow(row, step.ok, step.message);
+        setTimeout(displayNext, 200);
+      }, 200);
+    } else {
+      // ----- ALL STEPS SHOWN -----
+      if (!stored.success){
+        // **FAILURE** → black screen → status page
+        showFailureStatusPage();
+      } else {
+        qs('#init-status').textContent = 'Connection OK. Preparing game...';
+      }
+    }
   }
-});
-
-// goToPage helper
-function goToPage(id) {
-  document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
-  const target = document.getElementById(id);
-  if (target) target.style.display = 'block';
-  if (id === 'page_initializing') initDevices();
+  displayNext();
 }
 
+/* ------------------------------------------------------------------ */
+/* Retry from the status page (already in your HTML)                */
+/* ------------------------------------------------------------------ */
+function retryFromStatus(){
+  goToPage('page_initializing');
+  setTimeout(() => {
+    window.__initStarted = false;
+    window.__initReady = false;
+    window.__initSuccess = false;
+    runConnectionCheckAndStart(3000, false);
+  }, 600);
+}
 
+/* ------------------------------------------------------------------ */
+/* Expose the new functions for the inline buttons                  */
+/* ------------------------------------------------------------------ */
+window.retryFromStatus = retryFromStatus;
 
+4. HTML – the status page you already have (just make sure it exists)
+html
 
+<!-- Page 5.5: Initialization Status (after failure) -->
+<div class="screen" id="page_init_status" style="display:none;">
+  <div class="content-box status-wrap">
+    <div class="status-content">
+      <h2 class="status-title">Initialization Status</h2>
+
+      <div class="device-counter large">
+        <span id="status-ready">0</span> / <span id="status-total">0</span> devices ready
+      </div>
+
+      <div id="status-steps" class="steps"></div>
+
+      <div class="btn-row big mt-8">
+        <button class="btn-cta" onclick="retryFromStatus()">Retry Initialization</button>
+        <button class="btn-ghost" onclick="backToChoose()">Back to Games</button>
+      </div>
+    </div>
+  </div>
+</div>
