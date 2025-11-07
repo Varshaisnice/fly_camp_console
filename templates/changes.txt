@@ -1,101 +1,415 @@
-Below is a minimal, drop‑in patch for console.js that:
+/* ============================================================= */
+/* FlyCamp Console – Complete, Modern, Fail-Safe Initialisation  */
+/* ============================================================= */
 
-    Keeps every line you already have (no breaking changes).
-    Adds a black‑screen overlay that appears only when any check fails.
-    After 1 s the overlay fades out and the new page_init_status page is shown – the same list you already see on the init page, but now with the exact same OK / Failed icons.
-    Retry & Back buttons on the status page (already in the HTML you added).
+let username = "";
+let rfidTag = "";
+let selectedGameId = null;
+let selectedGameTitle = "";
+let selectedGameDesc = "";
+let scanInterval = null;
+let scanningActive = true;
 
-1. Add the overlay element once (anywhere in the <body> – after the first <div class="screen"> is fine)
-html
+// Controller mode
+let controllerMode = 'joystick';
+const WORD_A = 'Joystick Controller';
+const WORD_B = 'Hand Gesture Controller';
 
-<!-- BLACK SCREEN OVERLAY – always in the DOM -->
-<div id="black-overlay" class="black-overlay"></div>
-
-2. Add the CSS (at the bottom of console.css)
-css
-
-/* -------------------------------------------------
-   BLACK SCREEN + STATUS PAGE (only when a check fails)
-   ------------------------------------------------- */
-.black-overlay {
-  position: fixed;
-  inset: 0;
-  background: #000;
-  z-index: 7000;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .6s ease;
-}
-.black-overlay.active {
-  opacity: 1;
-  pointer-events: all;
-}
-
-/* make the status page look exactly like the init page */
-#page_init_status .step {   /* reuse the same step style */
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 18px;
-  background: rgba(191,0,255,.15);
-  border: 1.5px solid rgba(191,0,255,.4);
-  border-radius: 16px;
-  font-size: clamp(15px,1.9vw,19px);
-  font-weight: 500;
-  color: rgba(255,255,255,.95);
-  backdrop-filter: blur(10px);
-}
-#page_init_status .step.ok   { background:rgba(0,255,136,.22); border-color:#00ff88; color:#ccffdd; }
-#page_init_status .step.fail { background:rgba(255,82,82,.25); border-color:#ff5252; color:#ffaaaa; }
-#page_init_status .step .checkbox::before { font-size:18px; font-weight:900; }
-
-3. Patch console.js – only the parts that changed
-js
+// DOM Helpers
+const qs = (s, r = document) => r.querySelector(s);
+const qsa = (s, r = document) => Array.from(r.querySelectorAll(s));
 
 /* ------------------------------------------------------------------ */
-/* Initialisation sequence – NEW FAILURE FLOW                        */
+/* Navigation */
 /* ------------------------------------------------------------------ */
+function goToPage(id) {
+  qsa('.screen').forEach(s => s.classList.remove('active'));
+  const page = qs(`#${id}`);
+  if (page) page.classList.add('active');
 
-/* Keep the original runConnectionCheckAndStart() – we only add a tiny hook */
-async function runConnectionCheckAndStart(delayStartMs = 0, skipStart = false){
-  /* … existing code unchanged … */
+  document.body.style.backgroundColor = getComputedStyle(document.documentElement)
+    .getPropertyValue('--bg').trim();
 
-  // ----- NEW: store results for the status page -----------------
-  window.__initStoredResults = { results: results, success: !!data.success };
-  window.__initReady = true;
-  window.__initSuccess = !!data.success;
+  if (id === 'page_choose_game') {
+    const slider = qs('#game-card-container');
+    if (slider && typeof slider.centerOnSecondCard === 'function') {
+      slider.centerOnSecondCard();
+    }
+  }
+}
 
-  if (skipStart) return;               // preview‑mode → just store
-  /* … rest of the original function unchanged … */
+function backToChoose() {
+  goToPage('page_choose_game');
 }
 
 /* ------------------------------------------------------------------ */
-/* Show stored results on the init page (unchanged)                 */
+/* Controller Toggle */
 /* ------------------------------------------------------------------ */
-function showStoredInitResultsSequentially(){
-  /* … unchanged … */
+function updateControllerLabels() {
+  const root = document.body;
+  const toWord = controllerMode === 'joystick' ? WORD_A : WORD_B;
+  const fromWord = controllerMode === 'joystick' ? WORD_B : WORD_A;
+
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      const txt = node.nodeValue;
+      if (!txt) return NodeFilter.FILTER_SKIP;
+      const lower = txt.toLowerCase();
+      if (lower.includes(WORD_A.toLowerCase()) || lower.includes(WORD_B.toLowerCase())) {
+        const p = node.parentElement;
+        if (p && p.offsetParent !== null) return NodeFilter.FILTER_ACCEPT;
+      }
+      return NodeFilter.FILTER_SKIP;
+    }
+  });
+
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+
+  nodes.forEach(node => {
+    let t = node.nodeValue;
+    t = t.replace(new RegExp(WORD_A, 'ig'), WORD_A);
+    t = t.replace(new RegExp(WORD_B, 'ig'), WORD_B);
+    t = t.replace(new RegExp(fromWord, 'ig'), toWord);
+    node.nodeValue = t;
+  });
+}
+
+function registerControllerToggle() {
+  const btn = qs('#logo-toggle');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    controllerMode = controllerMode === 'joystick' ? 'gesture' : 'joystick';
+    updateControllerLabels();
+  });
 }
 
 /* ------------------------------------------------------------------ */
-/* NEW: FAILURE → BLACK SCREEN → STATUS PAGE                        */
+/* RFID Scanning */
 /* ------------------------------------------------------------------ */
-function showFailureStatusPage(){
-  // 1. show black overlay
+function beginAutoScan() {
+  const loader = qs('#loader1');
+  if (loader) loader.textContent = 'Waiting for token...';
+
+  scanInterval = setInterval(() => {
+    if (!scanningActive) return;
+    fetch('/scan_rfid')
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) {
+          username = d.name;
+          rfidTag = d.token_id;
+          if (loader) loader.textContent = `Hi ${username}!`;
+          setTimeout(() => {
+            qs('#greeting').textContent = `Hi ${username}!`;
+            qs('#user-info').textContent = `Token number: ${rfidTag}`;
+            goToPage('page2');
+          }, 600);
+        }
+      })
+      .catch(err => console.error('RFID scan error:', err));
+  }, 5000);
+}
+
+function confirmPlayer() {
+  scanningActive = false;
+  if (scanInterval) clearInterval(scanInterval);
+  goToPage('page_choose_game');
+}
+
+/* ------------------------------------------------------------------ */
+/* Game Selection Slider */
+/* ------------------------------------------------------------------ */
+function initializeCardSlider(selector) {
+  const slider = qs(selector);
+  if (!slider) return;
+  const cards = qsa('.card', slider);
+
+  cards.forEach(card => {
+    const vid = card.querySelector('.card-video');
+    if (vid) {
+      vid.pause();
+      vid.currentTime = 0;
+    }
+  });
+
+  function updateActiveCard() {
+    const centre = slider.scrollLeft + slider.clientWidth / 2;
+    let closest = null;
+    let minDist = Infinity;
+
+    cards.forEach(card => {
+      const cc = card.offsetLeft + card.offsetWidth / 2;
+      const dist = Math.abs(cc - centre);
+      if (dist < minDist) {
+        minDist = dist;
+        closest = card;
+      }
+    });
+
+    cards.forEach(card => {
+      const vid = card.querySelector('.card-video');
+      if (card === closest) {
+        card.classList.add('is-active');
+        if (vid) vid.play().catch(() => {});
+      } else {
+        card.classList.remove('is-active');
+        if (vid) {
+          vid.pause();
+          vid.currentTime = 0;
+        }
+      }
+    });
+  }
+
+  let scrollTimeout;
+  slider.addEventListener('scroll', () => {
+    if (scrollTimeout) clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(updateActiveCard, 80);
+  });
+
+  cards.forEach(card => {
+    card.addEventListener('click', () => {
+      selectedGameId = parseInt(card.getAttribute('data-game-id'), 10);
+      selectedGameTitle = card.getAttribute('data-title') || '';
+      selectedGameDesc = card.getAttribute('data-desc') || '';
+
+      qs('#chosen-game-title').textContent = `You chose: ${selectedGameTitle}`;
+      qs('#chosen-game-desc').textContent = selectedGameDesc;
+
+      const src = card.getAttribute('data-video') || '/static/assets/video1.mp4';
+      qs('#game-video').setAttribute('data-src', src);
+
+      goToPage('page_confirm');
+
+      window.__initStarted = false;
+      window.__initReady = false;
+      window.__initSuccess = false;
+    });
+  });
+
+  function centerOnSecondCard() {
+    const second = cards[1];
+    if (!second) return;
+    const offset = second.offsetLeft - (slider.clientWidth / 2) + (second.offsetWidth / 2);
+    slider.scrollLeft = offset;
+    updateActiveCard();
+  }
+
+  slider.centerOnSecondCard = centerOnSecondCard;
+  setTimeout(centerOnSecondCard, 50);
+}
+
+/* ------------------------------------------------------------------ */
+/* Preview Overlay & Background Init */
+/* ------------------------------------------------------------------ */
+function registerPreviewOverlay() {
+  const confirmBtn = qs('#confirm-game-btn');
+  const overlay = qs('#video-overlay');
+  const previewVid = qs('#game-video');
+  const closeBtn = qs('#close-video');
+  const cornerBtn = qs('#corner-progress');
+
+  if (!confirmBtn || !overlay || !previewVid || !closeBtn || !cornerBtn) return;
+
+  function openOverlay() {
+    const src = previewVid.getAttribute('data-src') || '/static/assets/video1.mp4';
+    previewVid.src = src;
+    overlay.style.display = 'block';
+
+    cornerBtn.style.setProperty('--prog', '0%');
+    cornerBtn.style.opacity = '0.5';
+    cornerBtn.style.pointerEvents = 'none';
+    cornerBtn.onclick = null;
+
+    previewVid.currentTime = 0;
+    previewVid.play().catch(() => {});
+
+    if (!window.__initStarted) {
+      window.__initStarted = true;
+      runConnectionCheckAndStart(0, true); // background
+    }
+  }
+
+  function closeOverlay() {
+    overlay.style.display = 'none';
+    previewVid.pause();
+  }
+
+  confirmBtn.addEventListener('click', openOverlay);
+  closeBtn.addEventListener('click', closeOverlay);
+
+  previewVid.addEventListener('timeupdate', () => {
+    if (!previewVid.duration || isNaN(previewVid.duration)) return;
+    const pct = Math.min(100, (previewVid.currentTime / previewVid.duration) * 100);
+    cornerBtn.style.setProperty('--prog', `${pct}%`);
+  });
+
+  previewVid.addEventListener('ended', () => {
+    cornerBtn.style.opacity = '1';
+    cornerBtn.style.pointerEvents = 'auto';
+    cornerBtn.style.setProperty('--prog', '100%');
+    cornerBtn.addEventListener('click', proceedAfterPreview, { once: true });
+  });
+
+  function proceedAfterPreview() {
+    closeOverlay();
+    goToPage('page_initializing');
+    waitForInitResults();
+  }
+
+  function waitForInitResults() {
+    if (!window.__initReady) {
+      setTimeout(waitForInitResults, 150);
+      return;
+    }
+    showStoredInitResultsSequentially();
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Connection Check & Init Logic */
+/* ------------------------------------------------------------------ */
+async function runConnectionCheckAndStart(delayStartMs = 0, skipStart = false) {
+  try {
+    clearSteps();
+    const errBox = qs('#init-error');
+    if (errBox) errBox.classList.add('hidden');
+    qs('#init-status').textContent = 'Running connection checks...';
+
+    const res = await fetch('/api/connection_check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ game_number: selectedGameId || 1 })
+    });
+    const data = await res.json();
+
+    const base = ['Joystick/Gesture', 'Nodes', 'Car', 'Drone'];
+    const order = (selectedGameId === 2) ? base : base.filter(n => n !== 'Car');
+    const results = [];
+
+    for (const name of order) {
+      const step = (data.steps || []).find(s => s.name === name);
+      if (!step) continue;
+
+      const label = name === 'Joystick/Gesture'
+        ? (controllerMode === 'joystick' ? WORD_A : WORD_B)
+        : step.name;
+
+      results.push({
+        displayName: label,
+        ok: !!step.ok,
+        message: step.message || ''
+      });
+
+      if (!skipStart) {
+        const row = addStepRow(label);
+        await new Promise(r => setTimeout(r, 200));
+        markRow(row, !!step.ok, step.message || '');
+      }
+    }
+
+    window.__initStoredResults = { results, success: !!data.success };
+    window.__initReady = true;
+    window.__initSuccess = !!data.success;
+
+    if (skipStart) return;
+
+    if (!data.success) {
+      qs('#init-status').textContent = 'Initialisation failed.';
+      qs('#init-error').classList.remove('hidden');
+      return;
+    }
+
+    qs('#init-status').textContent = 'Connection OK. Preparing game...';
+
+    if (delayStartMs > 0) {
+      await new Promise(r => setTimeout(r, delayStartMs));
+    }
+
+    await startGame();
+  } catch (e) {
+    console.error('Init error:', e);
+    qs('#init-status').textContent = 'Unexpected error.';
+    qs('#init-error').classList.remove('hidden');
+  }
+}
+
+async function startGame() {
+  try {
+    await fetch('/write_rfid_token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token_id: rfidTag })
+    });
+
+    const res = await fetch('/api/start_game', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ game_number: selectedGameId || 1, level_number: 1 })
+    });
+    const data = await res.json();
+
+    if (!data.success) {
+      qs('#init-status').textContent = data.error || 'Failed to launch.';
+      qs('#init-error').classList.remove('hidden');
+      return;
+    }
+
+    qs('#init-status').textContent = 'Game started. Good luck!';
+    checkGameDone();
+  } catch (err) {
+    console.error('Start error:', err);
+    qs('#init-status').textContent = 'Unexpected error.';
+    qs('#init-error').classList.remove('hidden');
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Show Stored Results with Failure → Black Screen → Status Page */
+/* ------------------------------------------------------------------ */
+function showStoredInitResultsSequentially() {
+  const stored = window.__initStoredResults;
+  if (!stored || !stored.results) return;
+
+  clearSteps();
+  const errBox = qs('#init-error');
+  if (errBox) errBox.classList.add('hidden');
+  qs('#init-status').textContent = 'Running connection checks...';
+
+  let idx = 0;
+  function displayNext() {
+    if (idx < stored.results.length) {
+      const step = stored.results[idx++];
+      const row = addStepRow(step.displayName);
+      setTimeout(() => {
+        markRow(row, step.ok, step.message);
+        setTimeout(displayNext, 200);
+      }, 200);
+    } else {
+      if (!stored.success) {
+        triggerFailureFlow();
+      } else {
+        qs('#init-status').textContent = 'Connection OK. Preparing game...';
+        setTimeout(startGame, 3000);
+      }
+    }
+  }
+  displayNext();
+}
+
+function triggerFailureFlow() {
   const overlay = qs('#black-overlay');
   overlay.classList.add('active');
 
-  // 2. after 1 s go to status page and render the same results
   setTimeout(() => {
     overlay.classList.remove('active');
     goToPage('page_init_status');
-    renderStatusPage();               // ← new helper (see below)
+    renderStatusPage();
   }, 1000);
 }
 
-/* ------------------------------------------------------------------ */
-/* Render the status page – identical to the init page               */
-/* ------------------------------------------------------------------ */
-function renderStatusPage(){
+function renderStatusPage() {
   const stored = window.__initStoredResults;
   if (!stored) return;
 
@@ -114,50 +428,46 @@ function renderStatusPage(){
       <div class="checkbox"></div>
       <span>${step.displayName} — ${step.ok ? 'Ready' : 'Failed'}</span>
     `;
-    row.style.animationDelay = `${0.1 + i*0.1}s`;
+    row.style.animationDelay = `${0.1 + i * 0.1}s`;
     container.appendChild(row);
   });
 }
 
 /* ------------------------------------------------------------------ */
-/* Hook the failure case – replace the old error‑banner logic       */
+/* Step Helpers */
 /* ------------------------------------------------------------------ */
-function showStoredInitResultsSequentially(){
-  const stored = window.__initStoredResults;
-  if (!stored || !stored.results) return;
+function clearSteps() {
+  const host = qs('#init-steps');
+  if (host) host.innerHTML = '';
+}
 
-  clearSteps();
-  const errBox = qs('#init-error');
-  if (errBox) errBox.classList.add('hidden');
+function addStepRow(name) {
+  const row = document.createElement('div');
+  row.className = 'step';
+  row.innerHTML = `<div>${name}</div><div>…</div>`;
+  qs('#init-steps').appendChild(row);
+  requestAnimationFrame(() => row.classList.add('show'));
+  return row;
+}
 
-  qs('#init-status').textContent = 'Running connection checks...';
-
-  let idx = 0;
-  function displayNext(){
-    if (idx < stored.results.length){
-      const step = stored.results[idx++];
-      const row = addStepRow(step.displayName);
-      setTimeout(() => {
-        markRow(row, step.ok, step.message);
-        setTimeout(displayNext, 200);
-      }, 200);
-    } else {
-      // ----- ALL STEPS SHOWN -----
-      if (!stored.success){
-        // **FAILURE** → black screen → status page
-        showFailureStatusPage();
-      } else {
-        qs('#init-status').textContent = 'Connection OK. Preparing game...';
-      }
-    }
+function markRow(row, ok, msg) {
+  row.classList.toggle('ok', ok);
+  row.classList.toggle('fail', !ok);
+  row.lastChild.textContent = ok ? 'OK' : 'Failed';
+  if (msg) {
+    const m = document.createElement('div');
+    m.style.fontSize = '12px';
+    m.style.opacity = '0.85';
+    m.style.margin = '4px 0 0 6px';
+    m.textContent = msg;
+    qs('#init-steps').appendChild(m);
   }
-  displayNext();
 }
 
 /* ------------------------------------------------------------------ */
-/* Retry from the status page (already in your HTML)                */
+/* Retry from Status Page */
 /* ------------------------------------------------------------------ */
-function retryFromStatus(){
+function retryFromStatus() {
   goToPage('page_initializing');
   setTimeout(() => {
     window.__initStarted = false;
@@ -168,29 +478,89 @@ function retryFromStatus(){
 }
 
 /* ------------------------------------------------------------------ */
-/* Expose the new functions for the inline buttons                  */
+/* Leaderboard */
 /* ------------------------------------------------------------------ */
+function checkGameDone() {
+  const intv = setInterval(() => {
+    fetch('/game_done')
+      .then(r => r.json())
+      .then(d => {
+        if (d.done) {
+          clearInterval(intv);
+          showLeaderboard();
+        }
+      })
+      .catch(() => clearInterval(intv));
+  }, 1500);
+}
+
+function showLeaderboard() {
+  goToPage('page16');
+  const tbody = qs('#leaderboard-body');
+  if (!tbody) return;
+
+  ['first', 'second', 'third'].forEach(cls => {
+    const pod = qs('.pod.' + cls);
+    if (pod) {
+      const nameEl = pod.querySelector('.pod-name');
+      const scoreEl = pod.querySelector('.pod-score');
+      if (nameEl) nameEl.textContent = '';
+      if (scoreEl) scoreEl.textContent = '';
+    }
+  });
+
+  tbody.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
+
+  fetch('/get_leaderboard')
+    .then(r => r.json())
+    .then(data => {
+      const players = (data && data.leaderboard) ? data.leaderboard : [];
+      const podium = [players[0], players[1], players[2]];
+
+      ['first', 'second', 'third'].forEach((cls, idx) => {
+        const pod = qs('.pod.' + cls);
+        const player = podium[idx];
+        if (pod) {
+          const nameEl = pod.querySelector('.pod-name');
+          const scoreEl = pod.querySelector('.pod-score');
+          if (nameEl) nameEl.textContent = player ? player.name : '';
+          if (scoreEl) scoreEl.textContent = player ? player.score : '';
+        }
+      });
+
+      if (players.length <= 3) {
+        tbody.innerHTML = '<tr><td colspan="3">All players are on the podium!</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = players.slice(3).map((p, i) =>
+        `<tr><td>${i + 4}</td><td>${p.name}</td><td>${p.score}</td></tr>`
+      ).join('');
+    })
+    .catch(() => {
+      tbody.innerHTML = '<tr><td colspan="3">Error loading leaderboard.</td></tr>';
+    });
+}
+
+/* ------------------------------------------------------------------ */
+/* Boot */
+/* ------------------------------------------------------------------ */
+window.onload = function () {
+  registerControllerToggle();
+  beginAutoScan();
+  initializeCardSlider('#game-card-container');
+  registerPreviewOverlay();
+};
+
+// Expose global functions
+window.goToPage = goToPage;
+window.confirmPlayer = confirmPlayer;
+window.retryConnectionCheck = () => runConnectionCheckAndStart(3000, false);
+window.backToChoose = backToChoose;
 window.retryFromStatus = retryFromStatus;
-
-4. HTML – the status page you already have (just make sure it exists)
-html
-
-<!-- Page 5.5: Initialization Status (after failure) -->
-<div class="screen" id="page_init_status" style="display:none;">
-  <div class="content-box status-wrap">
-    <div class="status-content">
-      <h2 class="status-title">Initialization Status</h2>
-
-      <div class="device-counter large">
-        <span id="status-ready">0</span> / <span id="status-total">0</span> devices ready
-      </div>
-
-      <div id="status-steps" class="steps"></div>
-
-      <div class="btn-row big mt-8">
-        <button class="btn-cta" onclick="retryFromStatus()">Retry Initialization</button>
-        <button class="btn-ghost" onclick="backToChoose()">Back to Games</button>
-      </div>
-    </div>
-  </div>
-</div>
+window.backToHome = function () {
+  goToPage('page1');
+  if (scanInterval) clearInterval(scanInterval);
+  scanningActive = true;
+  beginAutoScan();
+};
