@@ -173,24 +173,29 @@ button:active {
   max-width: 64%;
   margin: 6px auto 20px;
 }
+/* MODIFIED: Enable touch swiping (required for slider JS!) */
 .card-container {
   display: flex;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  gap: 28px;
+  gap: 2vw;
   padding: 0;
   -ms-overflow-style: none;
   scrollbar-width: none;
   cursor: grab;
+  touch-action: pan-y;
+  user-select: none; /* Prevent selection during swipe/drag */
 }
-.card-container::-webkit-scrollbar {
-  display: none;
+.card-container.dragging {
+  cursor: grabbing;
 }
 
 .card {
-  flex: 0 0 860px;
-  width: 860px;
-  height: 580px;
+  flex: 0 0 80vw;
+  width: 80vw;
+  max-width: 860px;       /* fallback for big screens */
+  min-width: 280px;
+  height: clamp(320px,56vw,580px); /* more fluid for responsive */
   background: rgba(191, 0, 255, 0.15);
   border-radius: 20px;
   border: 2px solid var(--accent);
@@ -205,9 +210,7 @@ button:active {
   transition: none;
   padding: 24px 22px 26px;
   text-align: center;
-}
-.card.is-active {
-  transform: none;
+  user-select: none;      /* Prevent selection inside card during swipe/drag */
 }
 .card-title {
   font-size: clamp(26px, 3vw, 34px);
@@ -221,10 +224,20 @@ button:active {
 }
 .card-media {
   width: 100%;
-  height: 100%;
+  aspect-ratio: 3 / 2;
   border-radius: 16px;
   overflow: hidden;
+  background: #220032;
 }
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;   /* Shows the full image, may leave empty bands */
+  background: #220032;
+  border-radius: 16px;
+}
+
 .card-video {
   width: 100%;
   height: 100%;
@@ -483,6 +496,30 @@ button:active {
 }
 .lb-table tbody tr:nth-child(even){background: rgba(191, 0, 255, 0.1);}
 
+.home-btn-bottom {
+  position: absolute;
+  right: 32px;
+  bottom: 32px;
+  z-index: 8;
+  padding: 16px 36px;
+  font-size: 1.2em;
+  border-radius: 100px;
+  background: var(--accent, #bf00ff);
+  color: var(--bg, #000000);
+  box-shadow: 0 5px 16px rgba(54,32,128,0.16);
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  transition: transform .18s ease, box-shadow .25s ease, opacity .2s ease;
+}
+.home-btn-bottom:hover {
+  transform: scale(1.045);
+  box-shadow: 0 8px 24px rgba(191, 0, 255, 0.14);
+}
+#page16 {
+  position: relative;
+}
+
 /* Responsive */
 @media (max-width:1100px){
   .card{flex-basis:760px;width:760px;height:560px;}
@@ -502,4 +539,165 @@ button:active {
 @keyframes spin{
   from{transform:rotate(0deg);}
   to{transform:rotate(360deg);}
+}
+
+/* -------------------------------------------------
+   SHINY UI – GLASS + GLOW + ANIMATIONS
+   ------------------------------------------------- */
+
+/* ---------- GLOBAL TYPOGRAPHY ---------- */
+h1,h2,h3,
+.card-title,.rules-title,.lb-title,
+#chosen-game-title,#greeting {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #ffffff 0%, #e0c0ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 1px 2px rgba(0,0,0,.15);
+}
+p, .card-desc, .chosen-desc, .muted,
+.rules-list li, .pod-name, .pod-score {
+  font-weight: 500;
+  color: rgba(255,255,255,.9);
+  line-height: 1.6;
+}
+.muted { opacity: .75; font-size: .95rem; }
+
+/* ---------- BUTTONS – GLASS GLOW ---------- */
+.btn-cta,
+.btn-ghost,
+#close-video,
+#corner-progress {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: 0 4px 15px rgba(191,0,255,.3);
+  transition: all .25s cubic-bezier(.4,0,.2,1);
+}
+.btn-cta:hover,
+#corner-progress:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 8px 25px rgba(191,0,255,.45); }
+.btn-ghost:hover { background: rgba(255,255,255,.12); }
+
+/* ---------- CARDS – GLASS + HOVER LIFT ---------- */
+.card {
+  background: rgba(191,0,255,.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 2px solid var(--accent);
+  box-shadow: 0 8px 32px rgba(0,0,0,.2);
+  transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+}
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 16px 40px rgba(0,0,0,.3);
+  border-color: #ff66ff;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg,
+    rgba(255,0,255,.2) 0%,
+    rgba(191,0,255,.1) 50%,
+    transparent 100%);
+  opacity: 0;
+  transition: opacity .3s;
+  pointer-events: none;
+  border-radius: 20px;
+}
+.card:hover::before { opacity: 1; }
+
+/* Card image zoom */
+.card-image {
+  transition: transform .4s ease;
+}
+.card:hover .card-image { transform: scale(1.06); }
+
+/* ---------- RULES LIST – NEON DIAMOND BULLETS ---------- */
+.rules-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+}
+.rules-list li {
+  position: relative;
+  padding-left: 2.2rem;
+  margin: .8rem 0;
+  opacity: 0;
+  transform: translateX(-12px);
+  animation: fadeInLeft .45s forwards;
+}
+.rules-list li:nth-child(1) { animation-delay: .1s; }
+.rules-list li:nth-child(2) { animation-delay: .2s; }
+.rules-list li:nth-child(3) { animation-delay: .3s; }
+.rules-list li:nth-child(4) { animation-delay: .4s; }
+.rules-list li:nth-child(5) { animation-delay: .5s; }
+
+.rules-list li::before {
+  content: 'diamond';
+  position: absolute;
+  left: 0;
+  top: .1em;
+  color: #ff66ff;
+  font-weight: 900;
+  text-shadow: 0 0 10px rgba(255,102,255,.8);
+  animation: pulse 2s infinite;
+}
+
+/* ---------- LEADERBOARD PODIUM – GOLD/SILVER/BRONZE GLOW ---------- */
+.pod {
+  background: rgba(191,0,255,.18);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: transform .3s ease;
+}
+.pod:hover { transform: scale(1.05); }
+.pod.first  { border-color: #ffd700; box-shadow: 0 0 25px rgba(255,215,0,.6); }
+.pod.second { border-color: #c0c0c0; box-shadow: 0 0 22px rgba(192,192,192,.55); }
+.pod.third  { border-color: #cd7f32; box-shadow: 0 0 20px rgba(205,127,50,.5); }
+
+.pod-rank {
+  background: linear-gradient(135deg, #fff, #ddd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ---------- VIDEO OVERLAY – CINEMATIC ---------- */
+.video-overlay {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.video-overlay video {
+  border: 3px solid rgba(191,0,255,.6);
+  box-shadow: 0 0 40px rgba(191,0,255,.5);
+}
+#close-video,
+#corner-progress {
+  background: rgba(255,255,255,.12);
+  border-radius: 50%;
+  width: 48px; height: 48px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem;
+}
+#close-video:hover,
+#corner-progress:hover {
+  background: rgba(255,255,255,.22);
+  transform: scale(1.12);
+}
+
+/* ---------- ANIMATIONS ---------- */
+@keyframes fadeInLeft {
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes pulse {
+  0%,100% { opacity: .8; transform: scale(1); }
+  50%     { opacity: 1; transform: scale(1.25); }
+}
+
+/* ---------- RESPONSIVE TWEAKS ---------- */
+@media (max-width: 768px) {
+  .btn-row { flex-direction: column; gap: .75rem; }
+  .btn-cta, .btn-ghost { width: 100%; }
+  .card { padding: 1.25rem; }
 }
