@@ -2,7 +2,7 @@
 <article class="card"
   data-game-id="1"
   data-title="Mine Seeker"
-  data-desc="">
+  data-desc="#rules-mine-seeker">
   <h2 class="card-title">Mine Seeker</h2>
 
   <div class="point-cards">
@@ -22,7 +22,7 @@
 <article class="card"
   data-game-id="2"
   data-title="Candy Commander"
-  data-desc="">
+  data-desc="#rules-candy-commander">
   <h2 class="card-title">Candy Commander</h2>
 
   <div class="point-cards">
@@ -42,7 +42,7 @@
 <article class="card"
   data-game-id="3"
   data-title="Code Breaker"
-  data-desc="">
+  data-desc="#rules-code-breaker">
   <h2 class="card-title">Code Breaker</h2>
 
   <div class="point-cards">
@@ -61,91 +61,63 @@
 
 
 
+<!-- Static rules for all games – now with IDs matching data-desc -->
+<div id="rules-container" class="game-rules">
+  <!-- Mine Seeker -->
+  <div id="rules-mine-seeker" class="rule-set hidden">
+    <h3 class="rules-title">Rules – Mine Seeker</h3>
+    <div class="point-cards">
+      <div class="point-card"><span class="point-bullet"></span><p>You have <strong>2 minutes</strong> on the clock.</p></div>
+      <div class="point-card"><span class="point-bullet"></span><p>There are <strong>5 mines</strong> in the arena.</p></div>
+      <div class="point-card"><span class="point-bullet"></span><p>Fly and <strong>hover over</strong> an active mine to disarm it.</p></div>
+      <div class="point-card"><span class="point-bullet"></span><p>Mines stay in place — focus on <strong>speed and control</strong>.</p></div>
+      <div class="point-card"><span class="point-bullet"></span><p>Score as much as you can before time runs out!</p></div>
+    </div>
+  </div>
 
-/* -------------------------------------------------
-   POINT CARDS – BIG, GLOWING, ANIMATED (data-desc = "")
-   ------------------------------------------------- */
-.point-cards {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin: 18px 0;
-  padding: 0 14px;
-}
+  <!-- Candy Commander -->
+  <div id="rules-candy-commander" class="rule-set hidden">
+    <h3 class="rules-title">Rules – Candy Commander</h3>
+    <div class="point-cards">
+      <div class="point-card"><span class="point-bullet"></span><p>Four <strong>candy stations</strong> are always visible.</p></div>
+      <div class="point-card"><span class="point-bullet"></span><p>The <strong>Candy Boss flashes a color</strong> cue.</p></div>
+      <div class="point-card"><span class="point-bullet"></span><p>Fly to the <strong>matching station</strong> to deliver.</p></div>
+      <div class="point-card"><span class="point-bullet"></span><p>Each correct delivery earns <strong>points</strong>.</p></div>
+      <div class="point-card"><span class="point-bullet"></span><p>Keep matching quickly to build your <strong>streak</strong>!</p></div>
+    </div>
+  </div>
 
-.point-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 15px 18px;
-  background: rgba(191, 0, 255, 0.15);
-  border: 1.5px solid rgba(191, 0, 255, 0.38);
-  border-radius: 18px;
-  backdrop-filter: blur(11px);
-  -webkit-backdrop-filter: blur(11px);
-  transition: all 0.32s cubic-bezier(0.4, 0, 0.2, 1);
-  opacity: 0;
-  transform: translateY(14px);
-  animation: fadeInUp 0.6s forwards;
-}
+  <!-- Code Breaker -->
+  <div id="rules-code-breaker" class="rule-set hidden">
+    <h3 class="rules-title">Rules – Code Breaker</h3>
+    <div class="point-cards">
+      <div class="point-card"><span class="point-bullet"></span><p>Five <strong>data ports</strong> are always active.</p></div>
+      <div class="point-card"><span class="point-bullet"></span><p>A <strong>glitched cue</strong> appears — text, color, or background.</p></div>
+      <div class="point-card"><span class="point-bullet"></span><p>Each game uses <strong>one cue type</strong> only.</p></div>
+      <div class="point-card"><span class="point-bullet"></span><p>Fly to the <strong>correct port</strong> to secure it.</p></div>
+      <div class="point-card"><span class="point-bullet"></span><p><strong>Wrong move = penalty</strong> — stay sharp!</p></div>
+    </div>
+  </div>
+</div>
 
-.point-card:nth-child(1) { animation-delay: 0.1s; }
-.point-card:nth-child(2) { animation-delay: 0.2s; }
-.point-card:nth-child(3) { animation-delay: 0.3s; }
-.point-card:nth-child(4) { animation-delay: 0.4s; }
-.point-card:nth-child(5) { animation-delay: 0.5s; }
 
-.point-card:hover {
-  background: rgba(191, 0, 255, 0.26);
-  border-color: #ff66ff;
-  transform: translateY(-4px);
-  box-shadow: 0 12px 28px rgba(191, 0, 255, 0.32);
-}
+// When a game card is clicked
+document.querySelectorAll('.card').forEach(card => {
+  card.addEventListener('click', () => {
+    const rulesSelector = card.getAttribute('data-desc');
+    const rulesDiv = document.querySelector(rulesSelector);
 
-.point-bullet {
-  flex-shrink: 0;
-  width: 22px;
-  height: 22px;
-  background: linear-gradient(135deg, #ff00ff, #bf00ff);
-  border-radius: 50%;
-  box-shadow: 0 0 16px rgba(255, 0, 255, 0.75);
-  position: relative;
-  margin-top: 3px;
-}
+    if (rulesDiv) {
+      // Hide all rule sets
+      document.querySelectorAll('.rule-set').forEach(r => r.classList.add('hidden'));
+      // Show selected one
+      rulesDiv.classList.remove('hidden');
 
-.point-bullet::after {
-  content: '';
-  position: absolute;
-  inset: -8px;
-  background: radial-gradient(circle, rgba(255, 0, 255, 0.55), transparent 70%);
-  border-radius: 50%;
-  animation: pulseGlow 2.3s infinite;
-}
+      // Optional: Update title/desc
+      document.getElementById('chosen-game-title').textContent = `You chose: ${card.getAttribute('data-title')}`;
+      document.getElementById('chosen-game-desc').textContent = ''; // or keep empty
+    }
 
-.point-card p {
-  margin: 0;
-  font-size: clamp(15.5px, 1.95vw, 20.5px);
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.97);
-  line-height: 1.58;
-  text-align: left;
-}
-
-.point-card p strong {
-  color: #ffccff;
-  font-weight: 700;
-  text-shadow: 0 0 6px rgba(255, 204, 255, 0.6);
-}
-
-/* Animations */
-@keyframes fadeInUp {
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.65; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.4); }
-}
-
-/* Hide old desc (optional) */
-.card-desc { display: none; }
+    goToPage('page_confirm');
+  });
+});
