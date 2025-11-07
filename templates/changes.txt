@@ -1,1023 +1,163 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FlyCamp</title>
-  <link rel="stylesheet" href="/static/css/console.css" />
-  <script defer src="/static/js/console.js"></script>
-</head>
-<body>
+<!-- Page 3: Game select -->
+<div class="screen" id="page_choose_game">
+  <img id="choose-image" src="/static/assets/choose your game.png" alt="Choose your game" />
+  <div class="card-container" id="game-card-container">
 
-  <!-- Background decor -->
-  <div class="circle top-left"></div>
-  <div class="circle bottom-right"></div>
-
-  <!-- Top-right logo toggle (joystick <-> gesture sensor) -->
-  <button id="logo-toggle" title="Toggle controller type">
-    <img src="/static/assets/flycamplogo.png" alt="FlyCamp" />
-  </button>
-
-  <!-- BLACK SCREEN OVERLAY -->
-  <div id="black-overlay" class="black-overlay"></div>
-
-  <!-- Page 1: Welcome -->
-  <div class="screen active" id="page1">
-    <div class="vcenter">
-      <img class="welcome-logo" src="/static/assets/welcome-logo.png" alt="Welcome to FlyCamp" />
-      <div id="loader1" class="mt-12">Waiting for token...</div>
-    </div>
-  </div>
-
-  <!-- Page 2: RFID confirmation -->
-  <div class="screen" id="page2">
-    <div class="vcenter">
-      <h2 id="greeting">Hi!</h2>
-      <p id="user-info"></p>
-      <div class="btn-row big">
-        <button class="btn-cta" onclick="confirmPlayer()">Confirm</button>
-        <button class="btn-ghost" onclick="goToPage('page1')">Back</button>
+    <!-- GAME 1: Mine Seeker -->
+    <article class="card"
+      data-game-id="1"
+      data-title="Mine Seeker"
+      data-desc="#rules-mine-seeker">
+      <h2 class="card-title">Mine Seeker</h2>
+      <ul class="point-cards">
+        <li class="point-card"><span class="point-bullet"></span>An <strong>angel drone</strong> must disarm glowing mines to protect the battlefield.</li>
+        <li class="point-card"><span class="point-bullet"></span>One mine <strong>activates and glows red</strong> at a time.</li>
+        <li class="point-card"><span class="point-bullet"></span>Fly over it to <strong>disarm</strong> and score a point.</li>
+        <li class="point-card"><span class="point-bullet"></span>Once defused, <strong>another mine activates</strong>.</li>
+        <li class="point-card"><span class="point-bullet"></span>Disarm as many as possible before <strong>time ends</strong>!</li>
+      </ul>
+      <div class="card-media">
+        <img class="card-image" src="static/assets/hover_and_seek.png" alt="Mine Seeker Drone"/>
       </div>
-    </div>
-  </div>
+    </article>
 
-  <!-- Page 3: Game select -->
-  <div class="screen" id="page_choose_game">
-    <img id="choose-image" src="/static/assets/choose your game.png" alt="Choose your game" />
-    <div class="card-container" id="game-card-container">
-      <!-- GAME 1: Mine Seeker -->
-      <article class="card"
-        data-game-id="1"
-        data-title="Mine Seeker"
-        data-desc="#rules-mine-seeker">
-        <h2 class="card-title">Mine Seeker</h2>
-        <div class="point-cards">
-          <div class="point-card"><span class="point-bullet"></span><p>An <strong>angel drone</strong> must disarm glowing mines to protect the battlefield.</p></div>
-          <div class="point-card"><span class="point-bullet"></span><p>One mine <strong>activates and glows red</strong> at a time.</p></div>
-          <div class="point-card"><span class="point-bullet"></span><p>Fly over it to <strong>disarm</strong> and score a point.</p></div>
-          <div class="point-card"><span class="point-bullet"></span><p>Once defused, <strong>another mine activates</strong>.</p></div>
-          <div class="point-card"><span class="point-bullet"></span><p>Disarm as many as possible before <strong>time ends</strong>!</p></div>
-        </div>
-        <div class="card-media">
-          <img class="card-image" src="static/assets/hover_and_seek.png" alt="Mine Seeker Drone"/>
-        </div>
-      </article>
-
-      <!-- GAME 2: Candy Commander -->
-      <article class="card"
-        data-game-id="2"
-        data-title="Candy Commander"
-        data-desc="#rules-candy-commander">
-        <h2 class="card-title">Candy Commander</h2>
-        <div class="point-cards">
-          <div class="point-card"><span class="point-bullet"></span><p>A <strong>hungry Candy Boss</strong> demands sweets — follow its color!</p></div>
-          <div class="point-card"><span class="point-bullet"></span><p>It <strong>flashes a color cue</strong> showing what it wants.</p></div>
-          <div class="point-card"><span class="point-bullet"></span><p>Fly to the <strong>matching candy station</strong> to deliver.</p></div>
-          <div class="point-card"><span class="point-bullet"></span><p><strong>Quick responses</strong> increase your score!</p></div>
-          <div class="point-card"><span class="point-bullet"></span><p>Feed the boss before <strong>time runs out</strong>.</p></div>
-        </div>
-        <div class="card-media">
-          <img class="card-image" src="static/assets/hues_the_boss.png" alt="Candy Commander Drone"/>
-        </div>
-      </article>
-
-      <!-- GAME 3: Code Breaker -->
-      <article class="card"
-        data-game-id="3"
-        data-title="Code Breaker"
-        data-desc="#rules-code-breaker">
-        <h2 class="card-title">Code Breaker</h2>
-        <div class="point-cards">
-          <div class="point-card"><span class="point-bullet"></span><p>An <strong>evil AI</strong> is corrupting a data center — decode colors to secure ports.</p></div>
-          <div class="point-card"><span class="point-bullet"></span><p>Each round shows <strong>glitched color cues</strong>.</p></div>
-          <div class="point-card"><span class="point-bullet"></span><p>Decode if clue is <strong>text, font color, or background</strong>.</p></div>
-          <div class="point-card"><span class="point-bullet"></span><p>Fly to the <strong>correct data port</strong> to secure it.</p></div>
-          <div class="point-card"><span class="point-bullet"></span><p><strong>Wrong move = score loss</strong> — think fast!</p></div>
-        </div>
-        <div class="card-media">
-          <img class="card-image" src="static/assets/color_chaos.png" alt="Code Breaker Drone"/>
-        </div>
-      </article>
-    </div>
-  </div>
-
-  <!-- Page 4: Confirm & preview (NO VIDEO) -->
-  <div class="screen" id="page_confirm">
-    <div class="confirm-container">
-      <div class="glass-box confirm-right">
-        <h2 id="chosen-game-title">You chose:</h2>
-
-        <!-- Dynamic Rules -->
-        <div id="rules-container" class="game-rules">
-          <!-- Mine Seeker Rules -->
-          <div id="rules-mine-seeker" class="rule-set hidden">
-            <h3 class="rules-title">Rules – Mine Seeker</h3>
-            <div class="point-cards">
-              <div class="point-card"><span class="point-bullet"></span><p>You have <strong>2 minutes</strong> on the clock.</p></div>
-              <div class="point-card"><span class="point-bullet"></span><p>There are <strong>5 mines</strong> in the arena.</p></div>
-              <div class="point-card"><span class="point-bullet"></span><p>Fly and <strong>hover over</strong> an active mine to disarm it.</p></div>
-              <div class="point-card"><span class="point-bullet"></span><p>Mines stay in place — focus on <strong>speed and control</strong>.</p></div>
-              <div class="point-card"><span class="point-bullet"></span><p>Score as much as you can before time runs out!</p></div>
-            </div>
-          </div>
-          <!-- Candy Commander Rules -->
-          <div id="rules-candy-commander" class="rule-set hidden">
-            <h3 class="rules-title">Rules – Candy Commander</h3>
-            <div class="point-cards">
-              <div class="point-card"><span class="point-bullet"></span><p>Four <strong>candy stations</strong> are always visible.</p></div>
-              <div class="point-card"><span class="point-bullet"></span><p>The <strong>Candy Boss flashes a color</strong> cue.</p></div>
-              <div class="point-card"><span class="point-bullet"></span><p>Fly to the <strong>matching station</strong> to deliver.</p></div>
-              <div class="point-card"><span class="point-bullet"></span><p>Each correct delivery earns <strong>points</strong>.</p></div>
-              <div class="point-card"><span class="point-bullet"></span><p>Keep matching quickly to build your <strong>streak</strong>!</p></div>
-            </div>
-          </div>
-          <!-- Code Breaker Rules -->
-          <div id="rules-code-breaker" class="rule-set hidden">
-            <h3 class="rules-title">Rules – Code Breaker</h3>
-            <div class="point-cards">
-              <div class="point-card"><span class="point-bullet"></span><p>Five <strong>data ports</strong> are always active.</p></div>
-              <div class="point-card"><span class="point-bullet"></span><p>A <strong>glitched cue</strong> appears — text, color, or background.</p></div>
-              <div class="point-card"><span class="point-bullet"></span><p>Each game uses <strong>one cue type</strong> only.</p></div>
-              <div class="point-card"><span class="point-bullet"></span><p>Fly to the <strong>correct port</strong> to secure it.</p></div>
-              <div class="point-card"><span class="point-bullet"></span><p><strong>Wrong move = penalty</strong> — stay sharp!</p></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="btn-row big mt-8">
-          <button class="btn-ghost" onclick="goToPage('page_choose_game')">Back to Games</button>
-          <button class="btn-cta" id="confirm-game-btn">Confirm Game</button>
-        </div>
+    <!-- GAME 2: Candy Commander -->
+    <article class="card"
+      data-game-id="2"
+      data-title="Candy Commander"
+      data-desc="#rules-candy-commander">
+      <h2 class="card-title">Candy Commander</h2>
+      <ul class="point-cards">
+        <li class="point-card"><span class="point-bullet"></span>A <strong>hungry Candy Boss</strong> demands sweets — follow its color!</li>
+        <li class="point-card"><span class="point-bullet"></span>It <strong>flashes a color cue</strong> showing what it wants.</p></li>
+        <li class="point-card"><span class="point-bullet"></span>Fly to the <strong>matching candy station</strong> to deliver.</li>
+        <li class="point-card"><span class="point-bullet"></span><strong>Quick responses</strong> increase your score!</li>
+        <li class="point-card"><span class="point-bullet"></span>Feed the boss before <strong>time runs out</strong>.</li>
+      </ul>
+      <div class="card-media">
+        <img class="card-image" src="static/assets/hues_the_boss.png" alt="Candy Commander Drone"/>
       </div>
-    </div>
-  </div>
+    </article>
 
-  <!-- Page 5: Initializing – Rules on top, Circles at bottom -->
-  <div class="screen" id="page_initializing">
-    <div class="content-box init-wrap">
-
-      <!-- Generic Instructions -->
-      <div class="generic-rules">
-        <h3 class="rules-title">Generic Flying Instructions</h3>
-        <p class="muted" style="margin-bottom:16px;">After reading the rules, click “Start Game.”</p>
-        <div class="point-cards">
-          <div class="point-card"><span class="point-bullet"></span><p>Place your hand over the <strong>mirror surface</strong> for <strong>3 seconds</strong> to launch the drone.</p></div>
-          <div class="point-card"><span class="point-bullet"></span><p>The <strong>120-second timer</strong> begins only when you score your <strong>first point</strong>.</p></div>
-          <div class="point-card"><span class="point-bullet"></span><p>Fly <strong>smoothly</strong>, stay inside the arena, and aim for <strong>accuracy</strong>.</p></div>
-          <div class="point-card"><span class="point-bullet"></span><p>Score as many points as possible before time runs out.</p></div>
-          <div class="point-card"><span class="point-bullet"></span><p><strong>Most important rule: Have fun!</strong></p></div>
-        </div>
+    <!-- GAME 3: Code Breaker -->
+    <article class="card"
+      data-game-id="3"
+      data-title="Code Breaker"
+      data-desc="#rules-code-breaker">
+      <h2 class="card-title">Code Breaker</h2>
+      <ul class="point-cards">
+        <li class="point-card"><span class="point-bullet"></span>An <strong>evil AI</strong> is corrupting a data center — decode colors to secure ports.</li>
+        <li class="point-card"><span class="point-bullet"></span>Each round shows <strong>glitched color cues</strong>.</li>
+        <li class="point-card"><span class="point-bullet"></span>Decode if clue is <strong>text, font color, or background</strong>.</li>
+        <li class="point-card"><span class="point-bullet"></span>Fly to the <strong>correct data port</strong> to secure it.</li>
+        <li class="point-card"><span class="point-bullet"></span><strong>Wrong move = score loss</strong> — think fast!</li>
+      </ul>
+      <div class="card-media">
+        <img class="card-image" src="static/assets/color_chaos.png" alt="Code Breaker Drone"/>
       </div>
+    </article>
 
-      <!-- Dynamic Game Rules -->
-      <div id="init-rules-container" class="game-rules"></div>
-
-      <!-- Circles at bottom -->
-      <div class="init-circles" id="init-circles"></div>
-
-      <div class="btn-row big mt-8">
-        <button class="btn-ghost" onclick="backToChoose()">Back</button>
-      </div>
-    </div>
   </div>
+</div>
 
-  <!-- Page 5.5: Status (after failure) -->
-  <div class="screen" id="page_init_status" style="display:none;">
-    <div class="content-box status-wrap">
-      <div class="status-content">
-        <h2 class="status-title">Initialization Failed</h2>
-        <div class="device-counter large">
-          <span id="status-ready">0</span> / <span id="status-total">0</span> devices ready
-        </div>
-        <div id="status-steps" class="steps"></div>
-        <div class="btn-row big mt-8">
-          <button class="btn-cta" onclick="retryFromStatus()">Retry Initialization</button>
-          <button class="btn-ghost" onclick="backToChoose()">Back to Games</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Page 6: Leaderboard -->
-  <div class="screen" id="page16">
-    <div class="lb-wrap">
-      <h2 class="lb-title">Final Results</h2>
-      <section class="lb-podium">
-        <div class="pod first"><div class="pod-rank">1</div><div class="pod-name"></div><div class="pod-score"></div></div>
-        <div class="pod second"><div class="pod-rank">2</div><div class="pod-name"></div><div class="pod-score"></div></div>
-        <div class="pod third"><div class="pod-rank">3</div><div class="pod-name"></div><div class="pod-score"></div></div>
-      </section>
-      <section class="lb-table">
-        <table>
-          <thead><tr><th>Rank</th><th>Pilot</th><th>Score</th></tr></thead>
-          <tbody id="leaderboard-body"></tbody>
-        </table>
-      </section>
-      <button class="btn-cta home-btn-bottom" onclick="backToHome()" title="Home">Home</button>
-    </div>
-  </div>
-
-  <input type="hidden" id="rfidToken" />
-</body>
-</html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ============================================================= */
-/* FlyCamp Console – Rules on Top, Circles at Bottom, Neon UI   */
-/* ============================================================= */
-
-:root {
-  --bg: #0a001f;
-  --accent: #bf00ff;
-  --text: #e6e6ff;
-  --card-bg: rgba(191, 0, 255, 0.15);
-  --card-border: rgba(191, 0, 255, 0.4);
+/* -------------------------------------------------
+   POINT CARDS – BULLETED LIST INSIDE GAME CARDS
+   ------------------------------------------------- */
+.point-cards {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Segoe UI', sans-serif;
-  overflow: hidden;
-  height: 100vh;
-}
-
-.screen {
-  display: none;
-  height: 100vh;
-  padding: 20px;
-  overflow-y: auto;
-}
-.screen.active { display: flex; flex-direction: column; justify-content: center; align-items: center; }
-
-.content-box {
-  width: 100%;
-  max-width: 900px;
-  text-align: center;
-}
-
-/* Buttons */
-.btn-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
-.btn-cta, .btn-ghost {
-  padding: 14px 28px;
-  font-size: clamp(15px, 2vw, 18px);
-  font-weight: 600;
-  border-radius: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 160px;
-}
-.btn-cta {
-  background: linear-gradient(135deg, #ff5252, #d32f2f);
-  color: white;
-  border: none;
-  box-shadow: 0 0 20px rgba(255, 82, 82, 0.5);
-}
-.btn-cta:hover { transform: translateY(-3px); box-shadow: 0 0 30px rgba(255, 82, 82, 0.7); }
-.btn-ghost {
-  background: transparent;
-  color: #ffcccc;
-  border: 2px solid #ff6b6b;
-}
-.btn-ghost:hover { background: rgba(255, 82, 82, 0.2); }
-
-/* Cards */
-.card-slider {
-  display: flex;
-  overflow-x: auto;
-  gap: 20px;
-  padding: 20px 0;
-  scroll-snap-type: x mandatory;
-}
-.card {
-  flex: 0 0 80%;
-  max-width: 420px;
-  background: var(--card-bg);
-  border: 1.5px solid var(--card-border);
-  border-radius: 20px;
-  padding: 20px;
-  scroll-snap-align: center;
-  transition: transform 0.3s ease;
-  backdrop-filter: blur(10px);
-}
-.card.is-active { transform: scale(1.05); box-shadow: 0 0 30px rgba(191,0,255,.6); }
-.card-title { font-size: clamp(22px, 4vw, 28px); margin-bottom: 16px; color: #ff66ff; }
-.card-image { width: 100%; border-radius: 16px; margin-top: 16px; }
-
-/* Rules */
-.game-rules { margin: 20px 0; }
-.rules-title { font-size: clamp(20px, 3vw, 28px); margin-bottom: 12px; color: #ff66ff; }
-.point-cards { display: flex; flex-direction: column; gap: 12px; }
 .point-card {
-  background: var(--card-bg);
-  border: 1.5px solid var(--card-border);
-  border-radius: 16px;
-  padding: 14px 18px;
-  text-align: left;
-  font-size: clamp(14px, 1.8vw, 17px);
-  backdrop-filter: blur(8px);
-}
-.point-bullet {
-  display: inline-block;
-  width: 8px; height: 8px;
-  background: var(--accent);
-  border-radius: 50%;
-  margin-right: 10px;
-}
-
-/* Init Page – Rules on top, Circles at bottom */
-.init-wrap { display: flex; flex-direction: column; height: 100%; justify-content: space-between; }
-#init-rules-container { flex: 1; overflow-y: auto; padding-bottom: 20px; }
-.init-circles {
   display: flex;
-  justify-content: center;
-  gap: 16px;
-  padding: 20px 0;
-  flex-wrap: wrap;
-}
-.init-circle {
-  width: 48px;
-  height: 48px;
-  border: 3px solid rgba(191,0,255,.6);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 600;
-  color: transparent;
-  position: relative;
-  transition: all 0.4s ease;
-}
-.init-circle::after {
-  content: attr(data-name);
-  position: absolute;
-  bottom: -24px;
-  font-size: 11px;
-  color: #aaa;
-  white-space: nowrap;
-}
-.init-circle.ok {
-  background: rgba(0,255,136,.3);
-  border-color: #00ff88;
-  box-shadow: 0 0 20px rgba(0,255,136,.7);
-  color: #00ff88;
-}
-.init-circle.ok::before {
-  content: 'OK';
-  font-weight: 900;
-}
-.init-circle.fail {
-  background: rgba(255,82,82,.3);
-  border-color: #ff5252;
-  box-shadow: 0 0 20px rgba(255,82,82,.7);
-  color: #ff5252;
-}
-.init-circle.fail::before {
-  content: 'Failed';
-  font-weight: 900;
-}
-
-/* Black Overlay */
-.black-overlay {
-  position: fixed; inset: 0; background: #000; z-index: 7000;
-  opacity: 0; pointer-events: none; transition: opacity .6s ease;
-}
-.black-overlay.active { opacity: 1; pointer-events: all; }
-
-/* Status Page */
-#page_init_status { background: radial-gradient(circle at center, #1a0033, #000); }
-.status-wrap { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
-.status-content { width: 100%; max-width: 720px; animation: fadeInUp 0.7s ease 0.6s both; }
-.status-title { font-size: clamp(28px, 5vw, 42px); font-weight: 800; color: #ff66ff; text-shadow: 0 0 20px rgba(255,102,255,.8); margin-bottom: 24px; }
-.device-counter.large { font-size: clamp(26px, 4.5vw, 38px); }
-#status-steps .step { margin: 8px 0; animation: slideIn 0.5s ease forwards; }
-
-/* Animations */
-@keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
-@keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-
-/* Mobile */
-@media (max-width: 768px) {
-  .btn-row { flex-direction: column; }
-  .btn-cta, .btn-ghost { width: 100%; max-width: 300px; }
-  .card { flex: 0 0 90%; }
-}
-
-/* -------------------------------------------------
-   BLACK OVERLAY
-   ------------------------------------------------- */
-.black-overlay {
-  position: fixed;
-  inset: 0;
-  background: #000;
-  z-index: 7000;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+  color: #e0e0e0;
+  animation: slideIn 0.3s ease-out forwards;
   opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.6s ease;
-}
-.black-overlay.active {
-  opacity: 1;
-  pointer-events: all;
+  transform: translateX(-8px);
 }
 
-/* -------------------------------------------------
-   INIT PAGE – RULES ON TOP, CIRCLES AT BOTTOM
-   ------------------------------------------------- */
-.init-wrap {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  justify-content: space-between;
-  padding: 20px 0;
+.point-card:nth-child(1) { animation-delay: 0.05s; }
+.point-card:nth-child(2) { animation-delay: 0.10s; }
+.point-card:nth-child(3) { animation-delay: 0.15s; }
+.point-card:nth-child(4) { animation-delay: 0.20s; }
+.point-card:nth-child(5) { animation-delay: 0.25s; }
+
+@keyframes slideIn {
+  to { opacity: 1; transform: translateX(0); }
 }
-#init-rules-container {
-  flex: 1;
-  overflow-y: auto;
-  padding-bottom: 20px;
-}
-.init-circles {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  padding: 20px 0;
-  flex-wrap: wrap;
-}
-.init-circle {
-  width: 52px;
-  height: 52px;
-  border: 3px solid rgba(191,0,255,.6);
+
+.point-bullet {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  background: var(--accent, #00d1ff);
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 600;
-  color: transparent;
-  position: relative;
-  transition: all 0.4s ease;
-}
-.init-circle::after {
-  content: attr(data-name);
-  position: absolute;
-  bottom: -28px;
-  font-size: 11px;
-  color: #ccc;
-  white-space: nowrap;
-  opacity: 0.8;
-}
-.init-circle.ok {
-  background: rgba(0,255,136,.3);
-  border-color: #00ff88;
-  box-shadow: 0 0 22px rgba(0,255,136,.7);
-  color: #00ff88;
-}
-.init-circle.ok::before {
-  content: 'OK';
-  font-weight: 900;
-  font-size: 14px;
-}
-.init-circle.fail {
-  background: rgba(255,82,82,.3);
-  border-color: #ff5252;
-  box-shadow: 0 0 22px rgba(255,82,82,.7);
-  color: #ff5252;
-}
-.init-circle.fail::before {
-  content: 'Failed';
-  font-weight: 900;
-  font-size: 14px;
+  margin-top: 0.35rem;
+  box-shadow: 0 0 6px rgba(0, 209, 255, 0.6);
+  transition: transform 0.2s ease;
 }
 
-/* -------------------------------------------------
-   STATUS PAGE
-   ------------------------------------------------- */
-#page_init_status {
-  background: radial-gradient(circle at center, #1a0033, #000);
-}
-.status-wrap {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-}
-.status-content {
-  width: 100%;
-  max-width: 720px;
-  animation: fadeInUp 0.7s ease 0.6s both;
-}
-.status-title {
-  font-size: clamp(28px, 5vw, 42px);
-  font-weight: 800;
-  color: #ff66ff;
-  text-shadow: 0 0 20px rgba(255,102,255,.8);
-  margin-bottom: 24px;
-}
-.device-counter.large {
-  font-size: clamp(26px, 4.5vw, 38px);
-}
-#status-steps .step {
-  margin: 8px 0;
-  animation: slideIn 0.5s ease forwards;
+.point-card:hover .point-bullet {
+  transform: scale(1.3);
 }
 
-/* -------------------------------------------------
-   ANIMATIONS
-   ------------------------------------------------- */
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+/* Strong text inside points */
+.point-card strong {
+  color: var(--accent, #00d1ff);
 }
 
-
-
-
-// FlyCamp Console – Final Version
-// No video, rules on top, circles at bottom, black screen → status page
-let username = "";
-let rfidTag = "";
-let selectedGameId = null;
-let selectedGameTitle = "";
-let selectedGameDesc = "";
-let scanInterval = null;
-let scanningActive = true;
-
-let controllerMode = 'joystick';
-const WORD_A = 'Joystick Controller';
-const WORD_B = 'Hand Gesture Controller';
-
-const qs  = (s, r = document) => r.querySelector(s);
-const qsa = (s, r = document) => Array.from(r.querySelectorAll(s));
-
-/* ------------------------------------------------------------------ */
-/* Navigation */
-/* ------------------------------------------------------------------ */
-function goToPage(id) {
-  qsa('.screen').forEach(s => s.classList.remove('active'));
-  const pageEl = qs(`#${id}`);
-  if (pageEl) pageEl.classList.add('active');
-  document.body.style.backgroundColor =
-    getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
-
-  if (id === 'page_choose_game') {
-    const slider = qs('#game-card-container');
-    if (slider && typeof slider.centerOnSecondCard === 'function') {
-      slider.centerOnSecondCard();
-    }
+/* Responsive: smaller on mobile */
+@media (max-width: 640px) {
+  .point-card {
+    font-size: 0.8rem;
+    gap: 0.4rem;
+  }
+  .point-bullet {
+    width: 7px;
+    height: 7px;
+    margin-top: 0.3rem;
   }
 }
 
-function backToChoose() { goToPage('page_choose_game'); }
 
-/* ------------------------------------------------------------------ */
-/* Controller Toggle (Logo + Choose Page) */
-/* ------------------------------------------------------------------ */
-function updateControllerLabels() {
-  const toWord = controllerMode === 'joystick' ? WORD_A : WORD_B;
-  const fromWord = controllerMode === 'joystick' ? WORD_B : WORD_A;
+<!-- Inside #page_confirm -->
+<div id="rules-container" class="game-rules">
+  <div id="rules-mine-seeker" class="rule-set hidden">
+    <h3 class="rules-title">Rules – Mine Seeker</h3>
+    <ul class="rules-list">
+      <li>Disarm glowing red mines by hovering over them.</li>
+      <li>Only one mine is active at a time.</li>
+      <li>Score 1 point per disarmed mine.</li>
+      <li>New mine activates immediately after.</li>
+      <li>Time limit: 2 minutes.</li>
+    </ul>
+  </div>
 
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
-    acceptNode(node) {
-      const txt = node.nodeValue;
-      if (!txt) return NodeFilter.FILTER_SKIP;
-      const lower = txt.toLowerCase();
-      if (lower.includes(WORD_A.toLowerCase()) || lower.includes(WORD_B.toLowerCase())) {
-        const p = node.parentElement;
-        if (p && p.offsetParent !== null) return NodeFilter.FILTER_ACCEPT;
-      }
-      return NodeFilter.FILTER_SKIP;
-    }
-  });
+  <div id="rules-candy-commander" class="rule-set hidden">
+    <h3 class="rules-title">Rules – Candy Commander</h3>
+    <ul class="rules-list">
+      <li>Candy Boss flashes a color.</li>
+      <li>Fly to the matching candy station.</li>
+      <li>Fast delivery = higher score.</li>
+      <li>Streak bonus for consecutive correct drops.</li>
+      <li>Time limit: 2 minutes.</li>
+    </ul>
+  </div>
 
-  const nodes = [];
-  while (walker.nextNode()) nodes.push(walker.currentNode);
-
-  nodes.forEach(node => {
-    let t = node.nodeValue;
-    t = t.replace(new RegExp(WORD_A, 'ig'), WORD_A);
-    t = t.replace(new RegExp(WORD_B, 'ig'), WORD_B);
-    t = t.replace(new RegExp(fromWord, 'ig'), toWord);
-    node.nodeValue = t;
-  });
-}
-
-function registerControllerToggle() {
-  const btn = qs('#logo-toggle');
-  if (!btn) return;
-  btn.addEventListener('click', () => {
-    controllerMode = controllerMode === 'joystick' ? 'gesture' : 'joystick';
-    updateControllerLabels();
-  });
-}
-
-/* ------------------------------------------------------------------ */
-/* RFID Scanning */
-/* ------------------------------------------------------------------ */
-function beginAutoScan() {
-  const loader = qs('#loader1');
-  if (loader) loader.textContent = 'Waiting for token...';
-
-  scanInterval = setInterval(() => {
-    if (!scanningActive) return;
-    fetch('/scan_rfid')
-      .then(r => r.json())
-      .then(d => {
-        if (d.success) {
-          username = d.name;
-          rfidTag = d.token_id;
-          if (loader) loader.textContent = `Hi ${username}!`;
-          setTimeout(() => {
-            qs('#greeting').textContent = `Hi ${username}!`;
-            qs('#user-info').textContent = `Token number: ${rfidTag}`;
-            goToPage('page2');
-          }, 600);
-        }
-      })
-      .catch(err => console.error('RFID scan error:', err));
-  }, 5000);
-}
-
-function confirmPlayer() {
-  scanningActive = false;
-  if (scanInterval) clearInterval(scanInterval);
-  fetch('/write_rfid_token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token_id: rfidTag })
-  }).then(() => goToPage('page_choose_game'));
-}
-
-/* ------------------------------------------------------------------ */
-/* Game Selection Slider (Swipe/Drag/Keyboard) */
-/* ------------------------------------------------------------------ */
-function initializeCardSlider(selector) {
-  const slider = qs(selector);
-  if (!slider) return;
-  const cards = qsa('.card', slider);
-
-  const getCardCenterIndex = () => {
-    const centre = slider.scrollLeft + slider.clientWidth / 2;
-    let bestIdx = 0, minDist = Infinity;
-    cards.forEach((card, i) => {
-      const cCentre = card.offsetLeft + card.offsetWidth / 2;
-      const dist = Math.abs(cCentre - centre);
-      if (dist < minDist) { minDist = dist; bestIdx = i; }
-    });
-    return bestIdx;
-  };
-
-  const scrollToIndex = (i) => {
-    i = Math.max(0, Math.min(cards.length - 1, i));
-    const card = cards[i];
-    if (!card) return;
-    const offset = card.offsetLeft - (slider.clientWidth - card.clientWidth) / 2;
-    slider.scrollTo({ left: offset, behavior: 'smooth' });
-  };
-
-  function updateActiveCard() {
-    const idx = getCardCenterIndex();
-    cards.forEach((c, i) => c.classList.toggle('is-active', i === idx));
-  }
-
-  let scrollTimeout;
-  slider.addEventListener('scroll', () => {
-    if (scrollTimeout) clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(updateActiveCard, 80);
-  });
-
-  // Touch swipe
-  let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
-  slider.addEventListener('touchstart', (e) => {
-    if (e.touches && e.touches.length === 1) {
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-      touchStartTime = Date.now();
-    }
-  }, { passive: false });
-
-  slider.addEventListener('touchend', (e) => {
-    if (!e.changedTouches || e.changedTouches.length === 0) return;
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    const dy = e.changedTouches[0].clientY - touchStartY;
-    const dt = Date.now() - touchStartTime;
-    const isHorizontal = Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 30 && dt < 650;
-    if (isHorizontal) {
-      const current = getCardCenterIndex();
-      scrollToIndex(dx < 0 ? current + 1 : current - 1);
-    } else {
-      scrollToIndex(getCardCenterIndex());
-    }
-  });
-
-  // Mouse drag
-  let isDragging = false, dragStartX = 0;
-  slider.addEventListener('mousedown', (e) => {
-    isDragging = true;
-    dragStartX = e.clientX;
-  });
-  window.addEventListener('mouseup', (e) => {
-    if (!isDragging) return;
-    isDragging = false;
-    const dx = e.clientX - dragStartX;
-    if (Math.abs(dx) > 30) {
-      const current = getCardCenterIndex();
-      scrollToIndex(dx < 0 ? current + 1 : current - 1);
-    } else {
-      scrollToIndex(getCardCenterIndex());
-    }
-  });
-
-  // Card click
-  cards.forEach(card => {
-    card.addEventListener('click', () => {
-      selectedGameId = parseInt(card.getAttribute('data-game-id'), 10);
-      selectedGameTitle = card.getAttribute('data-title') || '';
-      selectedGameDesc = card.getAttribute('data-desc') || '';
-
-      qs('#chosen-game-title').textContent = `You chose: ${selectedGameTitle}`;
-
-      // Show rules on confirm page
-      qsa('#rules-container .rule-set').forEach(r => r.classList.add('hidden'));
-      const target = qs(selectedGameDesc);
-      if (target) target.classList.remove('hidden');
-
-      goToPage('page_confirm');
-      window.__initStarted = false;
-      window.__initReady = false;
-      window.__initSuccess = false;
-    });
-  });
-
-  // Keyboard
-  slider.setAttribute('tabindex', '0');
-  slider.addEventListener('keydown', (e) => {
-    const current = getCardCenterIndex();
-    if (e.key === 'ArrowLeft') { e.preventDefault(); scrollToIndex(current - 1); }
-    else if (e.key === 'ArrowRight') { e.preventDefault(); scrollToIndex(current + 1); }
-    else if (e.key === 'Home') { e.preventDefault(); scrollToIndex(0); }
-    else if (e.key === 'End') { e.preventDefault(); scrollToIndex(cards.length - 1); }
-  });
-
-  function centerOnSecondCard() {
-    const second = cards[1];
-    if (!second) return;
-    const offset = second.offsetLeft - (slider.clientWidth / 2) + (second.clientWidth / 2);
-    slider.scrollLeft = offset;
-    updateActiveCard();
-  }
-  slider.centerOnSecondCard = centerOnSecondCard;
-  setTimeout(centerOnSecondCard, 80);
-  setTimeout(() => { updateActiveCard(); scrollToIndex(getCardCenterIndex()); }, 120);
-}
-
-/* ------------------------------------------------------------------ */
-/* Confirm → Init (Rules on top, Circles at bottom) */
-/* ------------------------------------------------------------------ */
-function registerConfirmButton() {
-  const btn = qs('#confirm-game-btn');
-  if (!btn) return;
-
-  btn.addEventListener('click', () => {
-    // Clone rules to initializing page
-    const source = qs('#rules-container .rule-set:not(.hidden)');
-    const dest = qs('#init-rules-container');
-    dest.innerHTML = source ? source.outerHTML : '';
-
-    if (!window.__initStarted) {
-      window.__initStarted = true;
-      runConnectionCheckAndStart(0, true); // background
-    }
-    goToPage('page_initializing');
-    waitForInitResults();
-  });
-}
-
-function waitForInitResults() {
-  if (!window.__initReady) {
-    setTimeout(waitForInitResults, 150);
-    return;
-  }
-  showStoredInitResultsSequentially();
-}
-
-/* ------------------------------------------------------------------ */
-/* Connection Check – Circles at bottom */
-/* ------------------------------------------------------------------ */
-async function runConnectionCheckAndStart(delayStartMs = 0, skipStart = false) {
-  try {
-    qs('#init-circles').innerHTML = '';
-    const res = await fetch('/api/connection_check', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ game_number: selectedGameId || 1, controller: controllerMode })
-    });
-    const data = await res.json();
-
-    const base = ['Joystick/Gesture', 'Nodes', 'Car', 'Drone'];
-    const order = (selectedGameId === 2) ? base : base.filter(n => n !== 'Car');
-    const results = [];
-
-    for (const name of order) {
-      const step = (data.steps || []).find(s => s.name === name);
-      if (!step) continue;
-
-      const label = name === 'Joystick/Gesture'
-        ? (controllerMode === 'joystick' ? WORD_A : WORD_B)
-        : step.name;
-
-      results.push({ displayName: label, ok: !!step.ok, message: step.message || '' });
-
-      if (!skipStart) {
-        const circle = document.createElement('div');
-        circle.className = 'init-circle';
-        circle.dataset.name = label;
-        qs('#init-circles').appendChild(circle);
-        await new Promise(r => setTimeout(r, 200));
-        circle.classList.add(step.ok ? 'ok' : 'fail');
-      }
-    }
-
-    window.__initStoredResults = { results, success: !!data.success };
-    window.__initReady = true;
-    window.__initSuccess = !!data.success;
-
-    if (skipStart) return;
-    if (!data.success) return;
-    if (delayStartMs > 0) await new Promise(r => setTimeout(r, delayStartMs));
-    await startGame();
-  } catch (e) {
-    console.error('Init error:', e);
-  }
-}
-
-async function startGame() {
-  try {
-    await fetch('/write_rfid_token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token_id: rfidTag })
-    });
-
-    const res = await fetch('/api/start_game', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ game_number: selectedGameId || 1, level_number: 1, controller: controllerMode })
-    });
-    const data = await res.json();
-
-    if (!data.success) return;
-    checkGameDone();
-  } catch (err) {
-    console.error('Start error:', err);
-  }
-}
-
-/* ------------------------------------------------------------------ */
-/* Show Results + Failure Flow (Circles only) */
-/* ------------------------------------------------------------------ */
-function showStoredInitResultsSequentially() {
-  const stored = window.__initStoredResults;
-  if (!stored || !stored.results) return;
-
-  const container = qs('#init-circles');
-  container.innerHTML = '';
-
-  let idx = 0;
-  function displayNext() {
-    if (idx < stored.results.length) {
-      const step = stored.results[idx++];
-      const circle = document.createElement('div');
-      circle.className = 'init-circle';
-      circle.dataset.name = step.displayName;
-      container.appendChild(circle);
-
-      setTimeout(() => {
-        circle.classList.add(step.ok ? 'ok' : 'fail');
-        setTimeout(displayNext, 200);
-      }, 200);
-    } else {
-      if (!stored.success) {
-        triggerFailureFlow();
-      } else {
-        setTimeout(startGame, 3000);
-      }
-    }
-  }
-  displayNext();
-}
-
-function triggerFailureFlow() {
-  const overlay = qs('#black-overlay');
-  overlay.classList.add('active');
-  setTimeout(() => {
-    overlay.classList.remove('active');
-    goToPage('page_init_status');
-    renderStatusPage();
-  }, 1000);
-}
-
-function renderStatusPage() {
-  const stored = window.__initStoredResults;
-  if (!stored) return;
-
-  const readyEl = qs('#status-ready');
-  const totalEl = qs('#status-total');
-  const container = qs('#status-steps');
-
-  totalEl.textContent = stored.results.length;
-  readyEl.textContent = stored.results.filter(r => r.ok).length;
-  container.innerHTML = '';
-
-  stored.results.forEach((step, i) => {
-    const row = document.createElement('div');
-    row.className = `step ${step.ok ? 'ok' : 'fail'}`;
-    row.innerHTML = `<div class="checkbox"></div><span>${step.displayName} — ${step.ok ? 'Ready' : 'Failed'}</span>`;
-    row.style.animationDelay = `${0.1 + i * 0.1}s`;
-    container.appendChild(row);
-  });
-}
-
-/* ------------------------------------------------------------------ */
-/* Retry & Leaderboard */
-/* ------------------------------------------------------------------ */
-function retryFromStatus() {
-  goToPage('page_initializing');
-  setTimeout(() => {
-    window.__initStarted = false;
-    window.__initReady = false;
-    window.__initSuccess = false;
-    runConnectionCheckAndStart(3000, false);
-  }, 600);
-}
-
-function checkGameDone() {
-  const intv = setInterval(() => {
-    fetch('/game_done')
-      .then(r => r.json())
-      .then(d => {
-        if (d.done) {
-          clearInterval(intv);
-          showLeaderboard();
-        }
-      })
-      .catch(() => clearInterval(intv));
-  }, 1500);
-}
-
-function showLeaderboard() {
-  goToPage('page16');
-  const tbody = qs('#leaderboard-body');
-  if (!tbody) return;
-
-  tbody.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
-
-  fetch('/get_leaderboard')
-    .then(r => r.json())
-    .then(data => {
-      const players = (data && data.leaderboard) ? data.leaderboard : [];
-      tbody.innerHTML = players.map((p, i) =>
-        `<tr><td>${i+1}</td><td>${p.name}</td><td>${p.score}</td></tr>`
-      ).join('') || '<tr><td colspan="3">No data</td></tr>';
-    })
-    .catch(() => {
-      tbody.innerHTML = '<tr><td colspan="3">Error loading leaderboard.</td></tr>';
-    });
-}
-
-/* ------------------------------------------------------------------ */
-/* Boot */
-/* ------------------------------------------------------------------ */
-window.onload = function () {
-  registerControllerToggle();
-  beginAutoScan();
-  initializeCardSlider('#game-card-container');
-  registerConfirmButton();
-};
-
-window.goToPage = goToPage;
-window.confirmPlayer = confirmPlayer;
-window.backToChoose = backToChoose;
-window.retryFromStatus = retryFromStatus;
-window.backToHome = function () {
-  goToPage('page1');
-  if (scanInterval) clearInterval(scanInterval);
-  scanningActive = true;
-  beginAutoScan();
-};
+  <div id="rules-code-breaker" class="rule-set hidden">
+    <h3 class="rules-title">Rules – Code Breaker</h3>
+    <ul class="rules-list">
+      <li>Decode color cues: text, color, or background.</li>
+      <li>Fly to the correct data port.</li>
+      <li>Wrong port = -50 points.</li>
+      <li>Correct = +100 points.</li>
+      <li>Time limit: 90 seconds.</li>
+    </ul>
+  </div>
+</div>
