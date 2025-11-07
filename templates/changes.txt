@@ -2,17 +2,6 @@
 <div class="screen" id="page_initializing">
   <div class="content-box init-wrap">
 
-    <!-- RETRY ERROR PANEL – FIXED ON TOP, HIGH Z-INDEX -->
-    <div id="init-error" class="init-error hidden">
-      <div class="error-content">
-        <p id="init-error-text">Initialisation failed. Please retry.</p>
-        <div class="init-actions">
-          <button class="btn-cta small" id="btn-init-retry" onclick="retryConnectionCheck()">Retry</button>
-          <button class="btn-ghost small" id="btn-init-back" onclick="backToChoose()">Back</button>
-        </div>
-      </div>
-    </div>
-
     <!-- GENERIC FLYING INSTRUCTIONS -->
     <div class="generic-rules">
       <h3 class="rules-title">Generic Flying Instructions</h3>
@@ -63,261 +52,314 @@
 
 
 
+<!-- Page 5.5: Initialization Status (after failure) -->
+<div class="screen" id="page_init_status" style="display:none;">
+  <div class="content-box status-wrap">
+
+    <!-- BLACK OVERLAY (transition) -->
+    <div id="black-overlay" class="black-overlay"></div>
+
+    <!-- STATUS CONTENT -->
+    <div class="status-content">
+      <h2 class="status-title">Initialization Status</h2>
+
+      <div class="device-counter large">
+        <span id="status-ready">0</span> / <span id="status-total">4</span> devices ready
+      </div>
+
+      <div id="status-steps" class="steps">
+        <!-- JS fills this -->
+      </div>
+
+      <!-- RETRY & BACK BUTTONS -->
+      <div class="btn-row big mt-8">
+        <button class="btn-cta" id="btn-retry-status" onclick="retryFromStatus()">
+          Retry Initialization
+        </button>
+        <button class="btn-ghost" onclick="backToChoose()">
+          Back to Games
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 
 
 
 /* -------------------------------------------------
-   FIXED: RETRY ON TOP + MOBILE VISIBILITY
+   BLACK OVERLAY + STATUS PAGE
    ------------------------------------------------- */
-
-/* ERROR PANEL – FIXED ON TOP, Z-INDEX 6000 */
-.init-error {
-  position: fixed !important;
-  top: 20% !important; /* Higher up, not 50% */
-  left: 50% !important;
-  transform: translate(-50%, 0) !important; /* No vertical translate */
-  z-index: 6000 !important; /* Above all screens (z=2) */
-  width: min(360px, 90vw);
-  max-width: 400px;
-  padding: 20px 24px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, rgba(255, 82, 82, 0.3), rgba(255, 50, 50, 0.2));
-  border: 2px solid #ff5252;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5), 0 0 25px rgba(255, 82, 82, 0.7);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  text-align: center;
-  animation: slideDown 0.4s ease;
+.black-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #000;
+  z-index: 7000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
 }
 
-.error-content { 
+.black-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+#page_init_status {
+  background: radial-gradient(circle at center, #1a0033, #000);
+  position: relative;
+  overflow: hidden;
+}
+
+.status-wrap {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
-
-#init-error-text { 
-  margin: 0;
-  font-size: clamp(16px, 2.2vw, 20px);
-  font-weight: 600;
-  color: #ffeeee;
-}
-
-.init-actions {
-  display: flex;
-  gap: 12px;
   justify-content: center;
-  width: 100%;
-}
-
-.init-actions .btn-cta.small,
-.init-actions .btn-ghost.small {
-  padding: 10px 20px;
-  font-size: 16px;
-  min-width: 100px;
-  border-radius: 12px;
-  transition: all 0.25s ease;
-}
-
-.init-actions .btn-cta.small {
-  background: linear-gradient(135deg, #ff5252, #d32f2f);
-  color: #fff;
-  box-shadow: 0 0 15px rgba(255, 82, 82, 0.5);
-}
-
-.init-actions .btn-ghost.small {
-  background: transparent;
-  color: #ffeeee;
-  border: 1.5px solid #ff6b6b;
-  box-shadow: 0 0 10px rgba(255, 82, 82, 0.3);
-}
-
-.init-actions .small:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 82, 82, 0.6);
-}
-
-/* INIT HEADER */
-.init-header {
+  align-items: center;
+  padding: 20px;
   text-align: center;
-  margin: 20px 0;
 }
 
-.spinner {
-  width: 60px;
-  height: 60px;
-  border: 4px solid rgba(191, 0, 255, 0.2);
-  border-top: 4px solid var(--accent);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 16px;
+.status-content {
+  width: 100%;
+  max-width: 720px;
+  animation: fadeInUp 0.7s ease 0.6s both;
 }
 
-/* DEVICE COUNTER & STEPS – ALWAYS VISIBLE */
-.device-counter {
-  font-size: clamp(20px, 2.5vw, 28px);
+.status-title {
+  font-size: clamp(28px, 5vw, 42px);
+  font-weight: 800;
+  color: #ff66ff;
+  text-shadow: 0 0 20px rgba(255, 102, 255, 0.8);
+  margin-bottom: 24px;
+}
+
+.device-counter.large {
+  font-size: clamp(26px, 4.5vw, 38px);
   font-weight: 700;
   color: var(--accent);
-  margin: 20px 0 16px;
-  text-align: center;
-  text-shadow: 0 0 12px rgba(191, 0, 255, 0.7);
+  margin: 20px 0;
+  text-shadow: 0 0 15px rgba(191, 0, 255, 0.9);
 }
 
-#devices-ready {
+#status-ready {
   background: linear-gradient(135deg, #00ff88, #00b86e);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-size: 1.4em;
+  font-size: 1.5em;
 }
 
-.steps {
-  width: 100%;
-  max-width: 700px;
-  margin: 0 auto 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.step {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 18px;
-  background: rgba(191, 0, 255, 0.15);
-  border: 1.5px solid rgba(191, 0, 255, 0.4);
-  border-radius: 16px;
-  font-size: clamp(15px, 1.9vw, 19px);
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.95);
-  opacity: 0;
-  transform: translateX(-20px);
-  animation: slideIn 0.5s forwards;
+#status-steps .step {
+  background: rgba(191, 0, 255, 0.18);
+  border: 1.5px solid rgba(191, 0, 255, 0.45);
+  border-radius: 18px;
+  padding: 16px 20px;
+  font-size: clamp(16px, 2.1vw, 20px);
   backdrop-filter: blur(10px);
+  animation: slideIn 0.5s ease forwards;
+  margin: 8px 0;
 }
 
-.step:nth-child(1) { animation-delay: 0.1s; }
-.step:nth-child(2) { animation-delay: 0.2s; }
-.step:nth-child(3) { animation-delay: 0.3s; }
-.step:nth-child(4) { animation-delay: 0.4s; }
-
-.step .checkbox {
-  width: 28px;
-  height: 28px;
-  border: 2.5px solid rgba(191, 0, 255, 0.6);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-.step .checkbox::before {
-  content: '✓';
-  font-size: 16px;
-  font-weight: 900;
-  color: #00ff88;
-  opacity: 0;
-  transform: scale(0);
-}
-
-.step.ok .checkbox {
-  background: rgba(0, 255, 136, 0.3);
+#status-steps .step.ok {
+  background: rgba(0, 255, 136, 0.22);
   border-color: #00ff88;
-  box-shadow: 0 0 15px rgba(0, 255, 136, 0.6);
+  color: #ccffdd;
 }
 
-.step.ok .checkbox::before {
-  opacity: 1;
-  transform: scale(1);
-  animation: checkPop 0.35s ease;
-}
-
-.step.fail {
-  background: rgba(255, 87, 87, 0.2);
+#status-steps .step.fail {
+  background: rgba(255, 82, 82, 0.25);
   border-color: #ff5252;
   color: #ffaaaa;
 }
 
-.step.fail .checkbox {
-  border-color: #ff5252;
-  background: rgba(255, 82, 82, 0.25);
+#status-steps .step .checkbox::before {
+  font-size: 18px;
+  font-weight: 900;
 }
 
-.step.fail .checkbox::before {
-  content: '✗';
-  color: #ff5252;
-  opacity: 1;
-  transform: scale(1);
+.btn-row.big {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 32px;
+  flex-wrap: wrap;
 }
 
-/* START BUTTON */
-#btn-start-game:not(:disabled) {
-  background: linear-gradient(135deg, #00ff88, #00b86e);
-  color: #000;
-  box-shadow: 0 0 30px rgba(0, 255, 136, 0.7);
-  animation: pulseReady 2s infinite;
+.btn-cta {
+  background: linear-gradient(135deg, #ff5252, #d32f2f);
+  color: white;
+  padding: 16px 32px;
+  font-size: clamp(16px, 2.2vw, 20px);
+  font-weight: 700;
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 0 25px rgba(255, 82, 82, 0.6);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 180px;
 }
 
-#btn-start-game:not(:disabled):hover {
-  transform: translateY(-3px);
-  box-shadow: 0 0 40px rgba(0, 255, 136, 0.9);
+.btn-cta:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0 35px rgba(255, 82, 82, 0.8);
 }
 
-/* MOBILE: COMPACT, ALL VISIBLE */
-@media (max-width: 768px) {
-  .content-box.init-wrap {
-    padding: 16px;
-  }
-  .generic-rules {
-    margin-bottom: 20px;
-  }
-  .point-cards {
-    gap: 10px;
-  }
-  .point-card {
-    padding: 12px 14px;
-    font-size: 14px;
-  }
-  .init-header h2 {
-    font-size: 22px;
-  }
-  .steps {
-    gap: 10px;
-  }
-  .step {
-    padding: 12px 16px;
-    font-size: 15px;
-  }
+.btn-ghost {
+  background: transparent;
+  color: #ffcccc;
+  padding: 16px 32px;
+  font-size: clamp(16px, 2.2vw, 20px);
+  font-weight: 600;
+  border: 2px solid #ff6b6b;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 180px;
+}
+
+.btn-ghost:hover {
+  background: rgba(255, 82, 82, 0.2);
+  border-color: #ff8a8a;
+  color: white;
+}
+
+@media (max-width: 480px) {
   .btn-row.big {
-    gap: 10px;
+    flex-direction: column;
+    align-items: center;
   }
   .btn-cta, .btn-ghost {
     width: 100%;
-    padding: 14px;
+    max-width: 280px;
   }
 }
 
-/* Animations */
-@keyframes slideDown {
-  0% { opacity: 0; transform: translate(-50%, -100%) scale(0.9); }
-  100% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 @keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
-@keyframes checkPop { 0% { transform: scale(0); } 70% { transform: scale(1.3); } 100% { transform: scale(1); } }
-@keyframes pulseReady { 0%,100% { box-shadow: 0 0 30px rgba(0,255,136,.7); } 50% { box-shadow: 0 0 40px rgba(0,255,136,1); } }
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+
+let deviceStatus = [];
+let hasFailed = false;
+
+const devices = [
+  { name: "Drone Controller", id: "drone" },
+  { name: "Gesture Sensor", id: "sensor" },
+  { name: "Arena Projector", id: "arena" },
+  { name: "Game Server", id: "server" }
+];
+
+function initDevices() {
+  const container = document.getElementById('init-steps');
+  const readyEl = document.getElementById('devices-ready');
+  const totalEl = document.getElementById('devices-total');
+  
+  totalEl.textContent = devices.length;
+  container.innerHTML = '';
+  deviceStatus = [];
+  hasFailed = false;
+
+  devices.forEach((device, i) => {
+    const div = document.createElement('div');
+    div.className = 'step';
+    div.id = 'step-' + device.id;
+    div.innerHTML = `
+      <div class="checkbox"></div>
+      <span>Initializing <strong>${device.name}</strong>...</span>
+    `;
+    container.appendChild(div);
+
+    setTimeout(() => {
+      const success = Math.random() > 0.25;
+      const status = { ...device, success };
+
+      if (success) {
+        div.classList.add('ok');
+        div.querySelector('span').innerHTML = `<strong>${device.name}</strong> ready`;
+      } else {
+        div.classList.add('fail');
+        div.querySelector('span').innerHTML = `<strong>${device.name}</strong> failed`;
+        hasFailed = true;
+      }
+
+      deviceStatus.push(status);
+      readyEl.textContent = deviceStatus.filter(s => s.success).length;
+
+      if (i === devices.length - 1) {
+        setTimeout(checkInitComplete, 800);
+      }
+    }, 1200 + i * 900);
+  });
+}
+
+function checkInitComplete() {
+  const allOk = deviceStatus.every(s => s.success);
+  const btn = document.getElementById('btn-start-game');
+  btn.disabled = !allOk;
+
+  if (!allOk) {
+    triggerFailureFlow();
+  }
+}
+
+function triggerFailureFlow() {
+  const overlay = document.getElementById('black-overlay');
+  overlay.classList.add('active');
+
+  setTimeout(() => {
+    goToPage('page_init_status');
+    renderStatusPage();
+  }, 1000);
+}
+
+function renderStatusPage() {
+  const readyEl = document.getElementById('status-ready');
+  const totalEl = document.getElementById('status-total');
+  const container = document.getElementById('status-steps');
+
+  totalEl.textContent = devices.length;
+  readyEl.textContent = deviceStatus.filter(s => s.success).length;
+  container.innerHTML = '';
+
+  deviceStatus.forEach((device, i) => {
+    const div = document.createElement('div');
+    div.className = `step ${device.success ? 'ok' : 'fail'}`;
+    div.innerHTML = `
+      <div class="checkbox"></div>
+      <span><strong>${device.name}</strong> — ${device.success ? 'Ready' : 'Failed'}</span>
+    `;
+    div.style.animationDelay = `${0.1 + i * 0.1}s`;
+    container.appendChild(div);
+  });
+}
+
+function retryFromStatus() {
+  goToPage('page_initializing');
+  setTimeout(initDevices, 600);
+}
+
+function backToChoose() {
+  goToPage('page_choose_game');
+}
+
+// Run on page show
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('page_initializing')) {
+    initDevices();
+  }
+});
+
+// goToPage helper
+function goToPage(id) {
+  document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+  const target = document.getElementById(id);
+  if (target) target.style.display = 'block';
+  if (id === 'page_initializing') initDevices();
+}
 
 
 
 
-
-
-// Test: Show error after 3s
-setTimeout(() => {
-  document.getElementById('init-error').classList.remove('hidden');
-}, 3000);
