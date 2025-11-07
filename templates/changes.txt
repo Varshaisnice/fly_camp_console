@@ -1,1 +1,123 @@
+function showGameRules(card) {
+  const container = document.getElementById("rules-list-dynamic");
+  container.innerHTML = ""; // clear old rules
 
+  const rules = card.dataset.desc.split(";").map(r => r.trim()).filter(Boolean);
+
+  rules.forEach(rule => {
+    const ruleCard = document.createElement("div");
+    ruleCard.className = "rule-card";
+    ruleCard.textContent = rule;
+    container.appendChild(ruleCard);
+  });
+
+  // show section
+  document.getElementById("rules-dynamic").classList.remove("hidden");
+  document.getElementById("rules-title-dynamic").textContent = `🕹️ Rules – ${card.dataset.title}`;
+}
+
+
+<!-- ==== GAME 1 – Mine Seeker ==== -->
+<article class="card"
+  data-game-id="1"
+  data-title="Mine Seeker"
+  data-desc="">
+  <h2 class="card-title">Mine Seeker</h2>
+
+  <div class="point-cards">
+    <div class="point-card">
+      <span class="point-bullet"></span>
+      <p>An <strong>angel drone</strong> must disarm glowing mines to protect everyone on the battlefield.</p>
+    </div>
+    <div class="point-card">
+      <span class="point-bullet"></span>
+      <p>At any time, <strong>one mine activates</strong> and glows <strong>red</strong>.</p>
+    </div>
+    <div class="point-card">
+      <span class="point-bullet"></span>
+      <p>Fly your drone over it to <strong>disarm</strong> and score a point.</p>
+    </div>
+    <div class="point-card">
+      <span class="point-bullet"></span>
+      <p>Once defused, <strong>another mine activates</strong>.</p>
+    </div>
+    <div class="point-card">
+      <span class="point-bullet"></span>
+      <p>Disarm as many as possible before the <strong>timer ends</strong>!</p>
+    </div>
+  </div>
+
+  <div class="card-media">
+    <img class="card-image" src="static/assets/hover_and_seek.png" alt="Mine Seeker Drone"/>
+  </div>
+</article>
+
+<!-- ==== GAME 2 – Candy Commander ==== -->
+<article class="card"
+  data-game-id="2"
+  data-title="Candy Commander"
+  data-desc="">
+  <h2 class="card-title">Candy Commander</h2>
+
+  <div class="point-cards">
+    <div class="point-card">
+      <span class="point-bullet"></span>
+      <p>A <strong>hungry Candy Boss</strong> demands sweets — follow its colors!</p>
+    </div>
+    <div class="point-card">
+      <span class="point-bullet"></span>
+      <p>The Candy Boss <strong>flashes a color cue</strong> showing what it wants.</p>
+    </div>
+    <div class="point-card">
+      <span class="point-bullet"></span>
+      <p>Fly your drone over the <strong>matching candy station</strong> to deliver it.</p>
+    </div>
+    <div class="point-card">
+      <span class="point-bullet"></span>
+      <p><strong>Quick responses</strong> increase your score!</p>
+    </div>
+    <div class="point-card">
+      <span class="point-bullet"></span>
+      <p>Feed the Candy Boss before <strong>time runs out</strong>.</p>
+    </div>
+  </div>
+
+  <div class="card-media">
+    <img class="card-image" src="static/assets/hues_the_boss.png" alt="Candy Commander Drone"/>
+  </div>
+</article>
+
+<!-- ==== GAME 3 – Code Breaker ==== -->
+<article class="card"
+  data-game-id="3"
+  data-title="Code Breaker"
+  data-desc="">
+  <h2 class="card-title">Code Breaker</h2>
+
+  <div class="point-cards">
+    <div class="point-card">
+      <span class="point-bullet"></span>
+      <p>An <strong>evil AI</strong> is corrupting a data center — decode the colors and secure the ports.</p>
+    </div>
+    <div class="point-card">
+      <span class="point-bullet"></span>
+      <p>Each round, the system shows <strong>glitched color cues</strong>.</p>
+    </div>
+    <div class="point-card">
+      <span class="point-bullet"></span>
+      <p>Decode whether the correct clue is <strong>text, font color, or background</strong>.</p>
+    </div>
+    <div class="point-card">
+      <span class="point-bullet"></span>
+      <p>Fly to the correct <strong>data port</strong> to secure it.</p>
+    </div>
+    <div class="point-card">
+      <span class="point-bullet"></span>
+      <p><strong>Wrong captures reduce your score</strong> — think fast!</p>
+    </div>
+  </div>
+
+  <div class="card-media">
+    <img class="card-image" src="static/assets/color_chaos.png" alt="Code Breaker Drone"/>
+  </div>
+</article>
